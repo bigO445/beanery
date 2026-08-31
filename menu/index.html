@@ -16,7 +16,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Oswald:wght@300;400;500;600&family=Playfair+Display:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="menu.css?v=28">
+  <link rel="stylesheet" href="menu.css?v=35">
 </head>
 
 <body>
@@ -887,7 +887,28 @@
     </footer>
   </aside>
 
-  <script src="menu.js?v=28"></script>
+  <div class="cart-overlay" id="addonOverlay" hidden></div>
+
+  <aside class="cart addon-modal" id="addonModal" hidden aria-label="Add-ons for your drink" role="dialog"
+    aria-modal="true">
+    <header class="cart__head">
+      <div class="cart__head__text">
+        <h2 class="addon-modal__title">Add anything else to your drink?</h2>
+        <p class="cart__head__sub" id="addonModalDrink"></p>
+      </div>
+    </header>
+
+    <ul class="addon-modal__list" id="addonModalList"></ul>
+
+    <footer class="addon-modal__foot">
+      <button type="button" class="addon-modal__skip" id="addonSkip">No thanks</button>
+      <button type="button" class="addon-modal__add" id="addonAddBtn">
+        Add<span class="addon-modal__addtotal" id="addonAddTotal"></span>
+      </button>
+    </footer>
+  </aside>
+
+  <script src="menu.js?v=29"></script>
 </body>
 
 </html>
