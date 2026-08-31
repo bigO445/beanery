@@ -1923,6 +1923,39 @@ body.cart-open {
   min-width: 0;
 }
 
+/* add-ons attached to a drink render as a quiet sub-list under the
+   drink's own row, still inside the same .cart__item box — the drink is
+   the root, its add-ons sit indented under it, never their own
+   top-level cart row */
+.cart__addons {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: .3rem;
+  margin: -.1rem 0 0 52px;
+}
+
+.cart__addons__node {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .5rem;
+}
+
+.cart__addons__name {
+  font-size: .78rem;
+  color: var(--ink-faint);
+  min-width: 0;
+}
+
+.cart__addons__price {
+  flex: 0 0 auto;
+  font-family: var(--board);
+  font-size: .76rem;
+  color: var(--green-ink);
+  white-space: nowrap;
+}
+
 /* wide enough that the indent fits alongside everything else */
 @media (min-width:400px) {
   .cart__item__bottom {
