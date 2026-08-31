@@ -286,6 +286,113 @@
     cartTotalEl.firstChild.textContent = `${fmt(total)} `;
   }
 
+  /* ---------- add-ons popup ----------
+     Tapping + on a drink doesn't drop it straight in the cart — it opens
+     "add anything else to your drink?" first, sourced live off the
+     Add-ons section's own price list so the two never drift apart. */
+
+  const ADDON_FREE_SECTIONS = new Set(['desserts']); // not drinks — skip the prompt
+
+  const addonOverlay    = $('#addonOverlay');
+  const addonModal      = $('#addonModal');
+  const addonModalList  = $('#addonModalList');
+  const addonModalDrink = $('#addonModalDrink');
+  const addonSkipBtn    = $('#addonSkip');
+  const addonAddBtn     = $('#addonAddBtn');
+  const addonAddTotalEl = $('#addonAddTotal');
+
+  const addonDefs = $$('#addons .item').map((row) => {
+    const nameEl = $('.item__name', row);
+    const priceEl = $('.item__price', row);
+    const price = priceEl ? parsePrice(priceEl.textContent) : NaN;
+    return Number.isNaN(price) ? null : { name: cleanName(nameEl), price };
+  }).filter(Boolean);
+
+  let pendingItem = null;
+  let selectedAddons = new Set();
+
+  function selectedAddonsTotal() {
+    let sum = 0;
+    selectedAddons.forEach((i) => { sum += addonDefs[i].price; });
+    return sum;
+  }
+
+  function updateAddonAddLabel() {
+    const extra = selectedAddonsTotal();
+    addonAddTotalEl.textContent = extra > 0 ? ` · ${fmt(extra)} IQD` : '';
+  }
+
+  function renderAddonModalList() {
+    addonModalList.innerHTML = '';
+    addonDefs.forEach((addon, i) => {
+      const li = document.createElement('li');
+      li.className = 'addon-modal__row';
+      const id = `addon-opt-${i}`;
+      li.innerHTML = `
+        <label class="addon-modal__label" for="${id}">
+          <input type="checkbox" id="${id}" class="addon-modal__check">
+          <span class="addon-modal__name">${addon.name}</span>
+          <span class="addon-modal__price">+${fmt(addon.price)} IQD</span>
+        </label>`;
+      const checkbox = $('input', li);
+      checkbox.addEventListener('change', () => {
+        if (checkbox.checked) selectedAddons.add(i);
+        else selectedAddons.delete(i);
+        updateAddonAddLabel();
+      });
+      addonModalList.appendChild(li);
+    });
+    updateAddonAddLabel();
+  }
+
+  function openAddonModal(item) {
+    pendingItem = item;
+    selectedAddons = new Set();
+    addonModalDrink.textContent = item.name;
+    renderAddonModalList();
+    addonOverlay.hidden = false;
+    addonModal.hidden = false;
+    document.body.classList.add('cart-open');
+    requestAnimationFrame(() => {
+      addonOverlay.classList.add('is-open');
+      addonModal.classList.add('is-open');
+    });
+  }
+
+  function closeAddonModal() {
+    addonOverlay.classList.remove('is-open');
+    addonModal.classList.remove('is-open');
+    document.body.classList.remove('cart-open');
+    window.setTimeout(() => {
+      addonOverlay.hidden = true;
+      addonModal.hidden = true;
+    }, 300);
+    pendingItem = null;
+  }
+
+  // "no thanks" — the drink goes straight in, no add-ons attached
+  function skipAddons() {
+    if (pendingItem) addToCart(pendingItem.name, pendingItem.price, pendingItem.img);
+    closeAddonModal();
+  }
+
+  addonSkipBtn.addEventListener('click', skipAddons);
+
+  addonAddBtn.addEventListener('click', () => {
+    if (pendingItem) {
+      addToCart(pendingItem.name, pendingItem.price, pendingItem.img);
+      selectedAddons.forEach((i) => addToCart(addonDefs[i].name, addonDefs[i].price));
+    }
+    closeAddonModal();
+  });
+
+  // dismissing without an explicit choice still has to land on one of the
+  // two documented outcomes — treat it the same as "no thanks"
+  addonOverlay.addEventListener('click', skipAddons);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !addonModal.hidden) skipAddons();
+  });
+
   // wire an "add" button onto every priced card/item already on the page —
   // reads the price (and photo, for cards) straight off what's printed, so
   // new menu items only ever need their HTML, never a JS change
@@ -307,18 +414,27 @@
     const name = cleanName(nameEl);
     const photoEl = $('.pcard__photo', card);
     const img = photoEl?.querySelector('img')?.getAttribute('src') || null;
+
+    const sec = card.closest('.sec');
+    const offersAddons = addonDefs.length > 0 && sec && !ADDON_FREE_SECTIONS.has(sec.id);
+
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'pcard__add';
     btn.setAttribute('aria-label', `Add ${name} to your order`);
     btn.innerHTML = '<svg aria-hidden="true"><use href="#i-plus" /></svg>';
-    btn.addEventListener('click', () => addToCart(name, price, img));
+    btn.addEventListener('click', () => {
+      if (offersAddons) openAddonModal({ name, price, img });
+      else addToCart(name, price, img);
+    });
     // anchored to the photo tile itself (not the whole card) so it can
     // never end up sitting over the name/price text below it
     (photoEl || card).appendChild(btn);
   });
 
   $$('.item').forEach((row) => {
+    if (row.closest('#addons')) return; // chosen through the drink popup, not on their own
+
     const nameEl = $('.item__name', row);
     const priceEl = $('.item__price', row);
     if (!nameEl || !priceEl) return;
