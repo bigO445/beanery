@@ -209,10 +209,23 @@
     cartBtn.classList.add('cartbar--bump');
   }
 
-  function addToCart(name, price, img) {
-    const line = cart.find((l) => l.name === name && l.price === price);
+  // add-ons travel with the drink that carries them — one cart line, the
+  // drink as root and its add-ons nested inside as children — rather than
+  // becoming their own top-level lines. Two lines only merge (qty++) when
+  // both the drink AND its exact set of add-ons match.
+  const addonsKey = (addons) => (addons || [])
+    .map((a) => `${a.name}|${a.price}`)
+    .sort()
+    .join('~');
+
+  const lineUnitPrice = (line) => line.price + (line.addons || []).reduce((s, a) => s + a.price, 0);
+
+  function addToCart(name, price, img, addons) {
+    const addonList = addons && addons.length ? addons : [];
+    const key = addonsKey(addonList);
+    const line = cart.find((l) => l.name === name && l.price === price && addonsKey(l.addons) === key);
     if (line) line.qty += 1;
-    else cart.push({ name, price, qty: 1, img: img || null });
+    else cart.push({ name, price, qty: 1, img: img || null, addons: addonList });
     saveCart();
     renderCart();
     bumpCartBar();
@@ -226,7 +239,7 @@
   }
 
   const cartCount = () => cart.reduce((n, l) => n + l.qty, 0);
-  const cartTotal = () => cart.reduce((sum, l) => sum + l.price * l.qty, 0);
+  const cartTotal = () => cart.reduce((sum, l) => sum + lineUnitPrice(l) * l.qty, 0);
 
   function renderCart() {
     const count = cartCount();
@@ -249,11 +262,22 @@
 
     cartListEl.innerHTML = '';
     cart.forEach((line, i) => {
+      const hasAddons = line.addons && line.addons.length > 0;
       const li = document.createElement('li');
       li.className = 'cart__item';
       const media = line.img
         ? `<img src="${line.img}" alt="" loading="lazy">`
         : `<span class="cart__item__avatar">${line.name.trim().charAt(0).toUpperCase()}</span>`;
+      const unit = lineUnitPrice(line);
+      const addonNodes = hasAddons
+        ? `<ul class="cart__addons" aria-label="Add-ons on this ${line.name}">
+            ${line.addons.map((a) => `
+            <li class="cart__addons__node">
+              <span class="cart__addons__name">${a.name}</span>
+              <span class="cart__addons__price">+${fmt(a.price)}</span>
+            </li>`).join('')}
+          </ul>`
+        : '';
       li.innerHTML = `
         <div class="cart__item__top">
           <span class="cart__item__media">${media}</span>
@@ -262,8 +286,9 @@
             <svg aria-hidden="true"><use href="#i-trash" /></svg>
           </button>
         </div>
+        ${addonNodes}
         <div class="cart__item__bottom">
-          <span class="cart__item__unit">${fmt(line.price)} IQD each</span>
+          <span class="cart__item__unit">${fmt(unit)} IQD each</span>
           <div class="cart__item__right">
             <div class="cart__qty">
               <button type="button" class="cart__qty--minus" aria-label="One fewer ${line.name}">
@@ -274,7 +299,7 @@
                 <svg aria-hidden="true"><use href="#i-plus" /></svg>
               </button>
             </div>
-            <span class="cart__line">${fmt(line.price * line.qty)}</span>
+            <span class="cart__line">${fmt(unit * line.qty)}</span>
           </div>
         </div>`;
       $('.cart__qty--minus', li).addEventListener('click', () => setQty(i, cart[i].qty - 1));
@@ -380,8 +405,11 @@
 
   addonAddBtn.addEventListener('click', () => {
     if (pendingItem) {
-      addToCart(pendingItem.name, pendingItem.price, pendingItem.img);
-      selectedAddons.forEach((i) => addToCart(addonDefs[i].name, addonDefs[i].price));
+      const chosenAddons = Array.from(selectedAddons).map((i) => ({
+        name: addonDefs[i].name,
+        price: addonDefs[i].price,
+      }));
+      addToCart(pendingItem.name, pendingItem.price, pendingItem.img, chosenAddons);
     }
     closeAddonModal();
   });
@@ -497,7 +525,12 @@
 
     const order = {
       table: TABLE_NUMBER || null,
-      items: cart.map((l) => ({ name: l.name, price: l.price, qty: l.qty })),
+      items: cart.map((l) => ({
+        name: l.name,
+        price: l.price,
+        qty: l.qty,
+        ...(l.addons && l.addons.length ? { addons: l.addons } : {}),
+      })),
       total: cartTotal(),
       currency: 'IQD',
       createdAt: new Date().toISOString(),
