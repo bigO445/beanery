@@ -16,7 +16,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Oswald:wght@300;400;500;600&family=Playfair+Display:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="menu.css?v=35">
+  <link rel="stylesheet" href="menu.css?v=36">
 </head>
 
 <body>
@@ -45,6 +45,10 @@
     </symbol>
     <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
       <path d="m7 7 10 10M17 7 7 17" />
+    </symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"
+      stroke-linecap="round" stroke-linejoin="round">
+      <path d="M20 6.5 9.5 17 4 11.5" />
     </symbol>
     <symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
       stroke-linejoin="round">
@@ -865,24 +869,78 @@
       </button>
     </header>
 
-    <div class="cart__empty" id="cartEmpty">
-      <svg class="cart__empty__ico" aria-hidden="true">
-        <use href="#i-cart" />
-      </svg>
-      <p>Your cart is empty</p>
-      <span>Tap the <b>+</b> on any item to add it here.</span>
+    <!-- The receipt, shown the moment an order lands at the counter: what
+         was sent, what it costs, and the way back to the menu. Replaces the
+         browse view rather than sitting above it, so there is exactly one
+         thing to read after tapping the button. -->
+    <div class="cart__done" id="cartDone" hidden tabindex="-1">
+      <span class="cart__done__mark">
+        <svg aria-hidden="true">
+          <use href="#i-check" />
+        </svg>
+      </span>
+      <h3 class="cart__done__title">Order placed</h3>
+      <p class="cart__done__sub" id="cartDoneSub">The counter has it.</p>
+      <ul class="cart__done__list cart__sent" id="cartDoneList"></ul>
+      <div class="cart__done__total">
+        <span>This order</span>
+        <b id="cartDoneTotal">0 <small>IQD</small></b>
+      </div>
+      <button class="cart__more" id="cartDoneMore" type="button">Add more items</button>
     </div>
 
-    <ul class="cart__list" id="cartList"></ul>
+    <div class="cart__scroll" id="cartScroll">
+
+      <!-- orders already sent this sitting. Read-only on purpose: the kitchen
+           has them, so a stepper here would promise an edit nobody can honour. -->
+      <section class="cart__prev" id="cartPrev" hidden aria-label="Already ordered">
+        <h3 class="cart__prev__title">
+          <svg aria-hidden="true">
+            <use href="#i-check" />
+          </svg>
+          Already ordered
+        </h3>
+        <ol class="cart__prev__list" id="cartPrevList"></ol>
+      </section>
+
+      <div class="cart__empty" id="cartEmpty">
+        <svg class="cart__empty__ico" aria-hidden="true">
+          <use href="#i-cart" />
+        </svg>
+        <p>Your cart is empty</p>
+        <span>Tap the <b>+</b> on any item to add it here.</span>
+      </div>
+
+      <p class="cart__resume" id="cartResume" hidden>
+        Want anything else? Tap the <b>+</b> on any item and send a second order to the same table.
+      </p>
+
+      <p class="cart__newhead" id="cartNewHead" hidden>Adding now</p>
+      <ul class="cart__list" id="cartList"></ul>
+    </div>
 
     <footer class="cart__foot" id="cartFoot" hidden>
-      <div class="cart__total">
-        <span>Total</span>
-        <b id="cartTotal">0 <small>IQD</small></b>
+      <!-- Sent and unsent are never added together in one list, but the guest
+           still needs the one number they will actually pay — so the two
+           subtotals stay apart and only the table total merges them. -->
+      <div class="cart__sums">
+        <div class="cart__sum" id="cartSumPrev" hidden>
+          <span>Already ordered</span>
+          <b id="cartPrevTotal">0</b>
+        </div>
+        <div class="cart__sum" id="cartSumNew" hidden>
+          <span>New items</span>
+          <b id="cartNewTotal">0</b>
+        </div>
+        <div class="cart__total">
+          <span id="cartTotalLabel">Total</span>
+          <b id="cartTotal">0 <small>IQD</small></b>
+        </div>
       </div>
       <button class="cart__send" id="cartSend" type="button">
         <span id="cartSendLabel">Place your order</span>
       </button>
+      <button class="cart__more cart__more--foot" id="cartBrowse" type="button" hidden>Add more items</button>
       <p class="cart__status" id="cartStatus" role="status" aria-live="polite"></p>
     </footer>
   </aside>
@@ -914,7 +972,7 @@
     </footer>
   </aside>
 
-  <script src="menu.js?v=29"></script>
+  <script src="menu.js?v=30"></script>
 </body>
 
 </html>

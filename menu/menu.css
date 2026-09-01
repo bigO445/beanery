@@ -119,7 +119,8 @@ p {
   margin: 0;
 }
 
-ul {
+ul,
+ol {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -1553,6 +1554,32 @@ body.cart-open {
   }
 }
 
+/* Ordered: the round is with the counter and there is nothing new waiting to
+   be sent. Green fill instead of beige, so the bar reads as a receipt at a
+   glance rather than as one more thing left to do — and no invite pulse,
+   which would be nagging for an order already placed. */
+.cartbar--sent {
+  border-color: #606C38;
+  background: #606C38;
+  animation: none;
+}
+
+.cartbar--sent .cartbar__icon {
+  background: rgba(254, 250, 224, .18);
+}
+
+/* direct child only: the tick badge is nested inside .cartbar__icon too, and
+   recolouring it here would paint a beige tick onto a beige badge */
+.cartbar--sent .cartbar__icon > svg,
+.cartbar--sent .cartbar__label {
+  color: #FEFAE0;
+}
+
+.cartbar--sent .cartbar__total {
+  color: #FEFAE0;
+  opacity: .85;
+}
+
 .cartbar__icon {
   position: relative;
   display: grid;
@@ -1586,6 +1613,18 @@ body.cart-open {
   display: grid;
   place-items: center;
   box-shadow: 0 0 0 2px #606C38;
+}
+
+/* the count is replaced by a tick, not zeroed — "0" beside a cart icon reads
+   as a failure, a tick reads as the thing that actually happened */
+.cartbar__badge--check {
+  background: #FEFAE0;
+  color: #283618;
+}
+
+.cartbar__badge--check svg {
+  width: 11px;
+  height: 11px;
 }
 
 .cartbar__badge[hidden] {
@@ -1797,8 +1836,11 @@ body.cart-open {
   color: var(--green-ink);
 }
 
-.cart__list {
-  list-style: none;
+/* The panel now stacks two lists — what is already at the counter, and what
+   is being added now — so the scroll moved up to a wrapper around both.
+   Scrolling the editable list alone would pin the sent list to the top and
+   eat the card's height with it. */
+.cart__scroll {
   overflow-y: auto;
   flex: 1 1 auto;
   margin: .3rem 0;
@@ -1811,20 +1853,31 @@ body.cart-open {
   scrollbar-color: var(--green) transparent;
 }
 
+.cart__scroll[hidden] {
+  display: none;
+}
+
 /* WebKit/Chromium/Edge — replaces the OS's default arrow-and-track
    scrollbar with a slim themed thumb so it doesn't look like a stray
    system control dropped onto the card */
-.cart__list::-webkit-scrollbar {
+.cart__scroll::-webkit-scrollbar {
   width: 6px;
 }
 
-.cart__list::-webkit-scrollbar-track {
+.cart__scroll::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.cart__list::-webkit-scrollbar-thumb {
+.cart__scroll::-webkit-scrollbar-thumb {
   background: var(--green);
   border-radius: 999px;
+}
+
+.cart__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: .55rem;
 }
 
 .cart__item {
@@ -2041,6 +2094,418 @@ body.cart-open {
   font-variant-numeric: tabular-nums;
 }
 
+/* ==========================================================================
+   already ordered — the rounds already with the counter
+   Deliberately quieter than the editable cart above it: no photo, no stepper,
+   no remove. The kitchen has these, so every control here would be a promise
+   the page cannot keep. A left rule and a check mark say "done", not "gone".
+   ========================================================================== */
+
+.cart__prev {
+  display: flex;
+  flex-direction: column;
+  gap: .5rem;
+}
+
+.cart__prev[hidden] {
+  display: none;
+}
+
+.cart__prev__title {
+  display: flex;
+  align-items: center;
+  gap: .38rem;
+  font-family: var(--ui);
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--green-ink);
+}
+
+.cart__prev__title svg {
+  width: 13px;
+  height: 13px;
+  flex: 0 0 auto;
+}
+
+.cart__prev__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: .45rem;
+}
+
+.cart__order {
+  border-radius: 16px;
+  padding: .6rem .7rem .65rem;
+  background: var(--bg);
+  border-left: 3px solid var(--green);
+  opacity: .92;
+}
+
+.cart__order__head {
+  display: flex;
+  align-items: baseline;
+  gap: .5rem;
+  padding-bottom: .45rem;
+  margin-bottom: .45rem;
+  border-bottom: 1px dashed var(--line);
+}
+
+.cart__order__label {
+  font-family: var(--board);
+  font-weight: 600;
+  font-size: .8rem;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.cart__order__time {
+  font-size: .72rem;
+  color: var(--ink-faint);
+}
+
+.cart__order__sum {
+  margin-left: auto;
+  font-family: var(--board);
+  font-weight: 600;
+  font-size: .8rem;
+  color: var(--green-ink);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* one sent line — shared by the receipt and the list above, because the two
+   are the same fact shown twice and must never disagree */
+.cart__sent {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: .38rem;
+}
+
+.cart__sent__line {
+  display: flex;
+  align-items: baseline;
+  gap: .5rem;
+}
+
+.cart__sent__qty {
+  flex: 0 0 auto;
+  min-width: 1.9em;
+  font-family: var(--board);
+  font-weight: 600;
+  font-size: .8rem;
+  color: var(--green-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.cart__sent__body {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.cart__sent__name {
+  font-size: .84rem;
+  font-weight: 600;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.cart__sent__addons {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: .16rem;
+  margin-top: .16rem;
+}
+
+.cart__sent__addons li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .5rem;
+  font-size: .74rem;
+  color: var(--ink-faint);
+}
+
+.cart__sent__plus {
+  flex: 0 0 auto;
+  font-family: var(--board);
+  color: var(--green-ink);
+  white-space: nowrap;
+}
+
+.cart__sent__note {
+  margin-top: .16rem;
+  font-size: .74rem;
+  font-style: italic;
+  color: var(--ink-faint);
+  overflow-wrap: anywhere;
+}
+
+.cart__sent__price {
+  flex: 0 0 auto;
+  min-width: 54px;
+  text-align: right;
+  font-family: var(--board);
+  font-weight: 600;
+  font-size: .82rem;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+/* between rounds: nothing in the cart, but plenty on the table. The big
+   empty-cart illustration would be a lie here, so this replaces it. */
+.cart__resume {
+  padding: .1rem .2rem .3rem;
+  font-size: .8rem;
+  line-height: 1.5;
+  color: var(--ink-faint);
+}
+
+.cart__resume[hidden] {
+  display: none;
+}
+
+.cart__resume b {
+  color: var(--green-ink);
+}
+
+/* the divider that keeps the two lists from reading as one — only rendered
+   when there is actually a sent list above to be told apart from */
+.cart__newhead {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  margin-top: .25rem;
+  font-family: var(--ui);
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--gold);
+}
+
+.cart__newhead[hidden] {
+  display: none;
+}
+
+.cart__newhead::after {
+  content: "";
+  flex: 1 1 auto;
+  height: 1px;
+  background: var(--line);
+}
+
+/* ==========================================================================
+   the receipt — shown once, the moment an order reaches the counter
+   ========================================================================== */
+
+.cart__done {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  overflow-y: auto;
+  flex: 1 1 auto;
+  margin: .3rem 0 0;
+  padding: .4rem .1rem 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--green) transparent;
+}
+
+.cart__done[hidden] {
+  display: none;
+}
+
+.cart__done:focus {
+  outline: none;
+}
+
+.cart__done::-webkit-scrollbar {
+  width: 6px;
+}
+
+.cart__done::-webkit-scrollbar-thumb {
+  background: var(--green);
+  border-radius: 999px;
+}
+
+.cart__done__mark {
+  align-self: center;
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  /* fixed beige + green, not swapped in dark mode — see .cardrow__arrow */
+  border: 3px solid #606C38;
+  background: #FEFAE0;
+  color: #283618;
+  box-shadow: 0 12px 24px -12px rgba(40, 54, 24, .55);
+  animation: cart-done-pop .45s cubic-bezier(.34, 1.56, .64, 1) both;
+}
+
+.cart__done__mark svg {
+  width: 24px;
+  height: 24px;
+  /* the tick draws itself in, so the confirmation reads as something that
+     just happened rather than a state that was always there */
+  stroke-dasharray: 30;
+  stroke-dashoffset: 30;
+  animation: cart-done-tick .38s .18s ease-out forwards;
+}
+
+@keyframes cart-done-pop {
+  from {
+    transform: scale(.4);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes cart-done-tick {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.cart__done__title {
+  margin-top: .7rem;
+  text-align: center;
+  font-family: var(--display);
+  font-size: 1.3rem;
+  color: var(--ink);
+}
+
+.cart__done__sub {
+  margin-top: .2rem;
+  text-align: center;
+  font-size: .84rem;
+  color: var(--ink-soft);
+}
+
+.cart__done__list {
+  margin-top: 1.05rem;
+  padding: .7rem .8rem;
+  border-radius: 16px;
+  background: var(--bg);
+  border-left: 3px solid var(--green);
+}
+
+.cart__done__total {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: .7rem;
+  padding: .1rem .2rem;
+  font-family: var(--ui);
+}
+
+.cart__done__total span {
+  font-size: .86rem;
+  color: var(--ink-soft);
+}
+
+.cart__done__total b {
+  font-family: var(--board);
+  font-size: 1.25rem;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.cart__done__total b small {
+  font-size: .66rem;
+  font-weight: 400;
+  color: var(--ink-faint);
+  margin-left: .15rem;
+}
+
+/* the way back to the menu. Outlined, not filled: the loud button on this
+   screen has already been pressed. */
+.cart__more {
+  all: unset;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  cursor: pointer;
+  margin-top: 1rem;
+  padding: .9rem;
+  border-radius: 16px;
+  border: 2.5px solid var(--green);
+  color: var(--green-ink);
+  background: transparent;
+  font-family: var(--ui);
+  font-weight: 600;
+  font-size: .92rem;
+  transition: transform .15s ease, background .2s ease;
+}
+
+.cart__more--foot {
+  margin-top: 0;
+}
+
+.cart__more[hidden] {
+  display: none;
+}
+
+.cart__more:active {
+  transform: scale(.98);
+}
+
+@media (hover:hover) and (pointer:fine) {
+  .cart__more:hover {
+    background: var(--line);
+  }
+}
+
+/* ==========================================================================
+   footer sums — two subtotals that never merge into one list, and the single
+   number the guest actually settles
+   ========================================================================== */
+
+.cart__sum {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: .6rem;
+  padding: .18rem .2rem;
+  font-family: var(--ui);
+  font-size: .82rem;
+  color: var(--ink-faint);
+}
+
+.cart__sum[hidden] {
+  display: none;
+}
+
+.cart__sum b {
+  font-family: var(--board);
+  font-weight: 600;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+/* the first sum already carries the rule above it, so the total drops its
+   own — two hairlines a few pixels apart just look like a mistake */
+.cart__sums:has(.cart__sum:not([hidden])) .cart__sum:first-child {
+  border-top: 1px solid var(--line);
+  padding-top: .6rem;
+  margin-top: .45rem;
+}
+
+.cart__sums:has(.cart__sum:not([hidden])) .cart__total {
+  border-top: 0;
+  padding-top: .35rem;
+}
+
 .cart__foot {
   padding-top: .3rem;
   flex: 0 0 auto;
@@ -2107,6 +2572,13 @@ body.cart-open {
   opacity: .65;
   cursor: default;
   transform: none;
+}
+
+/* .cart__send sets display: grid, which outranks the UA sheet's
+   [hidden] { display: none } — without this the button stays on screen
+   after the cart empties into an order */
+.cart__send[hidden] {
+  display: none;
 }
 
 .cart__status {
@@ -2425,6 +2897,13 @@ body.is-browsing .item__add {
     transition-duration: .01ms !important;
     animation: none !important;
   }
+
+  /* the confirmation tick is drawn BY its animation, so killing the animation
+     above would leave an empty circle where the tick should be — paint it
+     complete instead of not at all */
+  .cart__done__mark svg {
+    stroke-dashoffset: 0;
+  }
 }
 
 /* staff print a clean copy for the counter */
@@ -2568,6 +3047,7 @@ body.is-browsing .item__add {
 /* the two green-filled controls — dark green on green would disappear, so
    these take the cream side of the same fixed pair */
 .cartbar:focus-visible,
+.cart__more:focus-visible,
 .cart__send:focus-visible,
 .addon-modal__add:focus-visible {
   outline: 3px solid #FEFAE0;
