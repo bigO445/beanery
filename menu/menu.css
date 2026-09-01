@@ -1956,6 +1956,16 @@ body.cart-open {
   white-space: nowrap;
 }
 
+/* a customer's typed special request — same indent as the add-ons list
+   so it reads as another child of the drink's own box */
+.cart__note {
+  margin: -.1rem 0 0 52px;
+  font-size: .78rem;
+  font-style: italic;
+  color: var(--ink-faint);
+  overflow-wrap: anywhere;
+}
+
 /* wide enough that the indent fits alongside everything else */
 @media (min-width:400px) {
   .cart__item__bottom {
@@ -2220,6 +2230,50 @@ body.cart-open {
   color: var(--green-ink);
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
+}
+
+.addon-modal__note {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  margin-bottom: .2rem;
+}
+
+.addon-modal__notelabel {
+  font-family: var(--ui);
+  font-weight: 600;
+  font-size: .82rem;
+  color: var(--ink-soft);
+}
+
+.addon-modal__notelabel span {
+  font-weight: 400;
+  color: var(--ink-faint);
+}
+
+.addon-modal__notefield {
+  box-sizing: border-box;
+  width: 100%;
+  resize: none;
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--ui);
+  font-size: .86rem;
+  padding: .6rem .75rem;
+  transition: box-shadow .15s ease, border-color .15s ease;
+}
+
+.addon-modal__notefield::placeholder {
+  color: var(--ink-faint);
+}
+
+.addon-modal__notefield:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(96, 108, 56, .15);
 }
 
 .addon-modal__foot {

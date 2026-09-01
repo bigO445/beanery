@@ -188,6 +188,12 @@
 
   const fmt = (n) => n.toLocaleString('en-US');
 
+  // a special-request note is free text a customer typed, so it must be
+  // escaped before it ever lands back in innerHTML
+  const escapeHtml = (s) => s.replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+
   let cart = [];
   try {
     cart = JSON.parse(localStorage.getItem(CART_KEY)) || [];
@@ -220,12 +226,16 @@
 
   const lineUnitPrice = (line) => line.price + (line.addons || []).reduce((s, a) => s + a.price, 0);
 
-  function addToCart(name, price, img, addons) {
+  function addToCart(name, price, img, addons, note) {
     const addonList = addons && addons.length ? addons : [];
+    const noteText = (note || '').trim();
     const key = addonsKey(addonList);
-    const line = cart.find((l) => l.name === name && l.price === price && addonsKey(l.addons) === key);
+    // a written note is as distinguishing as the add-on set — two lines
+    // only merge (qty++) when the drink, its add-ons, AND its note all match
+    const line = cart.find((l) => l.name === name && l.price === price
+      && addonsKey(l.addons) === key && (l.note || '') === noteText);
     if (line) line.qty += 1;
-    else cart.push({ name, price, qty: 1, img: img || null, addons: addonList });
+    else cart.push({ name, price, qty: 1, img: img || null, addons: addonList, note: noteText });
     saveCart();
     renderCart();
     bumpCartBar();
@@ -278,6 +288,9 @@
             </li>`).join('')}
           </ul>`
         : '';
+      const noteHtml = line.note
+        ? `<p class="cart__note">"${escapeHtml(line.note)}"</p>`
+        : '';
       li.innerHTML = `
         <div class="cart__item__top">
           <span class="cart__item__media">${media}</span>
@@ -287,6 +300,7 @@
           </button>
         </div>
         ${addonNodes}
+        ${noteHtml}
         <div class="cart__item__bottom">
           <span class="cart__item__unit">${fmt(unit)} IQD each</span>
           <div class="cart__item__right">
@@ -316,7 +330,50 @@
      "add anything else to your drink?" first, sourced live off the
      Add-ons section's own price list so the two never drift apart. */
 
-  const ADDON_FREE_SECTIONS = new Set(['desserts']); // not drinks — skip the prompt
+  // which add-ons make sense on which drinks, per the owner's spec. A
+  // section missing from this map (manual, signature, desserts, bottled,
+  // add-ons itself) gets no prompt at all — every item in it is either
+  // fully covered by ITEM_ADDONS below, or has nothing that applies.
+  // Names must match the #addons list in index.html exactly.
+  const SECTION_ADDONS = {
+    classic: ['Extra Espresso Shot', 'Extra Milk'],
+    iced:    ['Extra Espresso Shot', 'Extra Milk', 'Flavor Syrup', 'Cold Foam'],
+    matcha:  ['Extra Milk', 'Flavor Syrup', 'Cold Foam', 'Ice Cream Scoop'],
+    frappe:  ['Extra Espresso Shot', 'Extra Milk', 'Flavor Syrup', 'Cold Foam', 'Ice Cream Scoop'],
+    // no Extra Milk — a thinner milkshake is a prep request, not a paid add-on
+    shakes:  ['Flavor Syrup', 'Cold Foam', 'Ice Cream Scoop'],
+    // no Flavor Syrup — these are specific flavors already, not a base to re-flavor
+    milk:    ['Extra Milk', 'Cold Foam', 'Ice Cream Scoop'],
+    fresh:   ['Flavor Syrup'],
+    // Cold Foam Signatures (section id "signature") isn't in this map at
+    // all — they're café-designed drinks that already include cold foam,
+    // so none of the 5 add-ons apply.
+  };
+
+  // per-drink overrides — take priority over the section default above.
+  // An item listed here (even with an empty array) fully replaces whatever
+  // its section would otherwise offer, for drinks that don't fit their
+  // section's norm (e.g. an Iced Americano is black, so no Extra Milk;
+  // a Cold Brew isn't espresso-based, so no Extra Espresso Shot; a plain
+  // Espresso/Turkish Coffee is intentionally prepared as-is).
+  const ITEM_ADDONS = {
+    'Espresso': [],
+    'Double Espresso': [],
+    'Macchiato': ['Extra Espresso Shot', 'Extra Milk'],
+    'Cortado': ['Extra Espresso Shot', 'Extra Milk'],
+    'Turkish Coffee': [],
+    // these three keep Flavor Syrup — they're plain-ish bases worth flavoring
+    'Cappuccino': ['Extra Espresso Shot', 'Extra Milk', 'Flavor Syrup'],
+    'Latte': ['Extra Espresso Shot', 'Extra Milk', 'Flavor Syrup'],
+    'Spanish Latte': ['Extra Espresso Shot', 'Extra Milk', 'Flavor Syrup'],
+    // Vanilla/Caramel Latte, Mocha, White Mocha fall through to the
+    // "classic" section default (shot + milk, no syrup — already flavored)
+    'V60': [],
+    'Chemex': [],
+    'Cold Brew': ['Extra Milk', 'Flavor Syrup', 'Cold Foam'],
+    'Iced Americano': ['Extra Espresso Shot', 'Flavor Syrup', 'Cold Foam'],
+    'Fresh Orange Juice': [],
+  };
 
   const addonOverlay    = $('#addonOverlay');
   const addonModal      = $('#addonModal');
@@ -325,6 +382,7 @@
   const addonSkipBtn    = $('#addonSkip');
   const addonAddBtn     = $('#addonAddBtn');
   const addonAddTotalEl = $('#addonAddTotal');
+  const addonNoteInput  = $('#addonNoteInput');
 
   const addonDefs = $$('#addons .item').map((row) => {
     const nameEl = $('.item__name', row);
@@ -335,10 +393,11 @@
 
   let pendingItem = null;
   let selectedAddons = new Set();
+  let currentAddonOptions = []; // addonDefs filtered to the pending item's section
 
   function selectedAddonsTotal() {
     let sum = 0;
-    selectedAddons.forEach((i) => { sum += addonDefs[i].price; });
+    selectedAddons.forEach((i) => { sum += currentAddonOptions[i].price; });
     return sum;
   }
 
@@ -349,7 +408,7 @@
 
   function renderAddonModalList() {
     addonModalList.innerHTML = '';
-    addonDefs.forEach((addon, i) => {
+    currentAddonOptions.forEach((addon, i) => {
       const li = document.createElement('li');
       li.className = 'addon-modal__row';
       const id = `addon-opt-${i}`;
@@ -370,10 +429,12 @@
     updateAddonAddLabel();
   }
 
-  function openAddonModal(item) {
+  function openAddonModal(item, allowedNames) {
     pendingItem = item;
     selectedAddons = new Set();
+    currentAddonOptions = addonDefs.filter((a) => allowedNames.includes(a.name));
     addonModalDrink.textContent = item.name;
+    addonNoteInput.value = '';
     renderAddonModalList();
     addonOverlay.hidden = false;
     addonModal.hidden = false;
@@ -395,9 +456,12 @@
     pendingItem = null;
   }
 
-  // "no thanks" — the drink goes straight in, no add-ons attached
+  // "no thanks" declines the listed add-ons specifically — a typed note
+  // still rides along, since it's a separate signal from the checkboxes
   function skipAddons() {
-    if (pendingItem) addToCart(pendingItem.name, pendingItem.price, pendingItem.img);
+    if (pendingItem) {
+      addToCart(pendingItem.name, pendingItem.price, pendingItem.img, [], addonNoteInput.value);
+    }
     closeAddonModal();
   }
 
@@ -406,10 +470,10 @@
   addonAddBtn.addEventListener('click', () => {
     if (pendingItem) {
       const chosenAddons = Array.from(selectedAddons).map((i) => ({
-        name: addonDefs[i].name,
-        price: addonDefs[i].price,
+        name: currentAddonOptions[i].name,
+        price: currentAddonOptions[i].price,
       }));
-      addToCart(pendingItem.name, pendingItem.price, pendingItem.img, chosenAddons);
+      addToCart(pendingItem.name, pendingItem.price, pendingItem.img, chosenAddons, addonNoteInput.value);
     }
     closeAddonModal();
   });
@@ -444,7 +508,10 @@
     const img = photoEl?.querySelector('img')?.getAttribute('src') || null;
 
     const sec = card.closest('.sec');
-    const offersAddons = addonDefs.length > 0 && sec && !ADDON_FREE_SECTIONS.has(sec.id);
+    const allowedAddonNames = ITEM_ADDONS[name] !== undefined
+      ? ITEM_ADDONS[name]
+      : (sec && SECTION_ADDONS[sec.id]) || [];
+    const offersAddons = addonDefs.length > 0 && allowedAddonNames.length > 0;
 
     const btn = document.createElement('button');
     btn.type = 'button';
@@ -452,7 +519,7 @@
     btn.setAttribute('aria-label', `Add ${name} to your order`);
     btn.innerHTML = '<svg aria-hidden="true"><use href="#i-plus" /></svg>';
     btn.addEventListener('click', () => {
-      if (offersAddons) openAddonModal({ name, price, img });
+      if (offersAddons) openAddonModal({ name, price, img }, allowedAddonNames);
       else addToCart(name, price, img);
     });
     // anchored to the photo tile itself (not the whole card) so it can
@@ -530,6 +597,7 @@
         price: l.price,
         qty: l.qty,
         ...(l.addons && l.addons.length ? { addons: l.addons } : {}),
+        ...(l.note ? { note: l.note } : {}),
       })),
       total: cartTotal(),
       currency: 'IQD',
