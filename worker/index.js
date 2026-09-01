@@ -47,6 +47,33 @@ const MAX_ORDER_BYTES = 64 * 1024;
 // A publicId is 16 random bytes hex-encoded (newPublicId).
 const PUBLIC_ID = /^[a-f0-9]{32}$/;
 
+/*
+ * The two config values, cleaned before use.
+ *
+ * A header value is bytes on the wire. A newline or a smart quote picked up
+ * while pasting the secret into a terminal makes the whole subrequest
+ * malformed, and the edge answers a bare 400 with an empty body — a failure
+ * that names neither the cause nor the field.
+ *
+ * Surrounding whitespace is trimmed rather than rejected, because HTTP strips
+ * it in transit anyway; trimming makes this Worker agree with the wire instead
+ * of arguing with it. Anything else is refused up front by the guard in
+ * fetch(), with a message that says what is wrong.
+ */
+// Printable ASCII, no spaces. Written as escapes rather than the literal
+// `[!-~]` so the intent is readable without reaching for a code chart.
+const HEADER_SAFE = /^[\x21-\x7E]+$/;
+
+function posSecret(env) {
+  return String(env.POS_PROXY_SECRET || '').trim();
+}
+
+// Same treatment, plus any trailing slash: POS_ORIGIN + '/api/...' would
+// otherwise build a double slash, which some origins answer 404.
+function posOrigin(env) {
+  return String(env.POS_ORIGIN || '').trim().replace(/\/+$/, '');
+}
+
 const JSON_HEADERS = {
   'content-type': 'application/json; charset=utf-8',
   // A guest's order status is theirs alone and changes as the counter works on
@@ -74,14 +101,14 @@ function json(body, status = 200) {
  */
 function upstream(env, path, init = {}) {
   const headers = {
-    'X-POS-Proxy': env.POS_PROXY_SECRET,
+    'X-POS-Proxy': posSecret(env),
     accept: 'application/json',
   };
   const ip = init.clientIp;
   if (ip) headers['CF-Connecting-IP'] = ip;
   if (init.body !== undefined) headers['content-type'] = 'application/json';
 
-  return fetch(env.POS_ORIGIN + path, {
+  return fetch(posOrigin(env) + path, {
     method: init.method || 'GET',
     headers,
     body: init.body,
@@ -146,10 +173,25 @@ export default {
     // reported, never values -- both names are already public in this repo, so
     // there is nothing here an attacker did not have, and being able to read
     // it from a curl is worth far more than the pretence of hiding it.
-    const missing = ['POS_ORIGIN', 'POS_PROXY_SECRET'].filter((k) => !env[k]);
+    const secret = posSecret(env);
+    const missing = [];
+    if (!posOrigin(env)) missing.push('POS_ORIGIN');
+    if (!secret) missing.push('POS_PROXY_SECRET');
     if (missing.length) {
       console.error('missing binding(s): ' + missing.join(', '));
       return json({ error: 'Ordering is not configured.', missing }, 503);
+    }
+
+    // A secret that cannot legally be a header value is caught HERE, where the
+    // message can say so, rather than at the subrequest, where it surfaced as
+    // an unexplained 400 with an empty body and cost a live debugging session.
+    // The offending character class is named; the value never is.
+    if (!HEADER_SAFE.test(secret)) {
+      console.error('POS_PROXY_SECRET is not usable as an HTTP header value');
+      return json({
+        error: 'Ordering is not configured.',
+        reason: 'POS_PROXY_SECRET contains characters that cannot go in an HTTP header. Use printable ASCII with no spaces — a newline or a smart quote picked up while pasting is the usual cause.'
+      }, 503);
     }
 
     const clientIp = request.headers.get('CF-Connecting-IP') || '';
