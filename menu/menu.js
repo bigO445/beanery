@@ -894,9 +894,10 @@
   /*
    * Turn the cart into what the POS accepts.
    *
-   * Product ids and quantities only. No names, no prices, no total: the POS
-   * prices every line from its own catalogue and ignores anything else, which
-   * is what stops a guest editing the total in devtools and being charged it.
+   * Product ids, quantities, and the guest's note. No names, no prices, no
+   * total: the POS prices every line from its own catalogue and ignores
+   * anything else, which is what stops a guest editing the total in devtools
+   * and being charged it.
    *
    * An add-on becomes its own line. The guest reads one cart row for
    * "Cappuccino + Extra Shot"; the counter gets two lines that sum to the
@@ -907,7 +908,20 @@
     const missing = [];
     for (const l of cart) {
       if (!l.posId) { missing.push(l.name); continue; }
-      lines.push({ productId: l.posId, quantity: l.qty });
+      const line = { productId: l.posId, quantity: l.qty };
+      /* The special request rides on the drink, not on its add-ons.
+       *
+       * It has to be sent at all: the sent-orders list quotes the note back to
+       * the guest, so leaving it out of the payload told them "no ice" had been
+       * passed on while the kitchen ticket said nothing. A note that is shown
+       * but not delivered is worse than no note field at all.
+       *
+       * `notes`, plural, because that is the field the till, the kitchen screen
+       * and the receipt all read (see the POS's lib/orders-service.js). Putting
+       * it on the add-on lines too would print the same sentence twice on one
+       * ticket. */
+      if (l.note) line.notes = l.note;
+      lines.push(line);
       for (const a of (l.addons || [])) {
         if (!a.posId) { missing.push(a.name); continue; }
         // One add-on per drink, so the add-on quantity follows the drink's.

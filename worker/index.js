@@ -206,7 +206,7 @@ export default {
     }
 
     // ── POST /api/order ───────────────────────────────────────────────────
-    // Body: { t, items: [{ productId, quantity, modifiers? }], phone? }
+    // Body: { t, items: [{ productId, quantity, modifiers?, notes? }], phone? }
     //
     // The token is rewritten into the field name the POS expects rather than
     // having the menu know that name. Prices are NOT sent and would be ignored
@@ -244,6 +244,14 @@ export default {
               groupId: String((m && m.groupId) || ''),
               optionId: String((m && m.optionId) || ''),
             }));
+          }
+          // The guest's special request. Trimmed and capped here as well as at
+          // the POS: this rebuild is an allow-list, so a field the POS accepts
+          // still travels no further than this Worker unless it is named — and
+          // a note left out here is a note the guest was shown in their sent
+          // order and the kitchen never saw.
+          if (typeof (line && line.notes) === 'string' && line.notes.trim()) {
+            out.notes = line.notes.trim().slice(0, 500);
           }
           return out;
         }),
