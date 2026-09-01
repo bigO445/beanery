@@ -2274,30 +2274,98 @@ body.cart-open {
   color: var(--green-ink);
 }
 
-/* the divider that keeps the two lists from reading as one — only rendered
-   when there is actually a sent list above to be told apart from */
-.cart__newhead {
+/* ==========================================================================
+   the two-tab strip — sent rounds on one side, the round being built on the
+   other. Echoes the category pills at the top of the page rather than
+   inventing a second switch language for the same gesture.
+   ========================================================================== */
+
+/* sticky: a long sent list would otherwise scroll the way back to the other
+   tab off the top of the panel */
+.cart__tabs {
+  position: sticky;
+  top: 0;
+  z-index: 3;
   display: flex;
-  align-items: center;
-  gap: .5rem;
-  margin-top: .25rem;
-  font-family: var(--ui);
-  font-size: .74rem;
-  font-weight: 700;
-  letter-spacing: .09em;
-  text-transform: uppercase;
-  color: var(--gold);
+  gap: .4rem;
+  padding: .15rem 0 .55rem;
+  background: var(--card);
 }
 
-.cart__newhead[hidden] {
+.cart__tabs[hidden] {
   display: none;
 }
 
-.cart__newhead::after {
-  content: "";
-  flex: 1 1 auto;
-  height: 1px;
+.cart__tab {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .35rem;
+  white-space: nowrap;
+  padding: .5rem .7rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-family: var(--ui);
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  transition: background .32s cubic-bezier(.22, 1, .36, 1), color .32s cubic-bezier(.22, 1, .36, 1),
+    border-color .32s ease, box-shadow .32s ease;
+}
+
+.cart__tab svg {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+}
+
+/* the long label goes before the count does — on a narrow phone the number
+   is the part that still has to be readable */
+.cart__tab > span:first-of-type {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cart__tab.is-on {
+  background: var(--green);
+  border-color: var(--green);
+  color: #FBF7EF;
+  box-shadow: 0 8px 18px -10px rgba(44, 66, 39, .6);
+}
+
+.cart__tab__n {
+  flex: 0 0 auto;
+  min-width: 1.35em;
+  padding: 0 .3em;
+  border-radius: 999px;
   background: var(--line);
+  font-family: var(--board);
+  font-size: .72rem;
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.cart__tab.is-on .cart__tab__n {
+  background: rgba(251, 247, 239, .22);
+  color: #FBF7EF;
+}
+
+@media (hover:hover) and (pointer:fine) {
+  .cart__tab:not(.is-on):hover {
+    border-color: var(--green);
+    color: var(--green-ink);
+  }
+}
+
+.cart__new[hidden],
+.cart__prev__title[hidden] {
+  display: none;
 }
 
 /* ==========================================================================
@@ -2755,7 +2823,6 @@ body.cart-open {
   flex: 0 0 auto;
 }
 
-.addon-modal__skip,
 .addon-modal__add {
   all: unset;
   box-sizing: border-box;
@@ -2769,22 +2836,17 @@ body.cart-open {
   transition: transform .15s ease;
 }
 
-.addon-modal__skip {
-  flex: 1 1 38%;
-  border: 2.5px solid var(--line);
-  color: var(--ink-soft);
-  background: var(--bg);
-}
 
 .addon-modal__add {
-  flex: 1 1 62%;
+  /* the only button in the footer now that cancelling is the X and the
+     backdrop — nothing to share the row with */
+  flex: 1 1 auto;
   /* fixed beige + green, not swapped in dark mode — see .cardrow__arrow */
   border: 3px solid #606C38;
   background: #FEFAE0;
   color: #283618;
 }
 
-.addon-modal__skip:active,
 .addon-modal__add:active {
   transform: scale(.97);
 }
@@ -3039,14 +3101,11 @@ body.is-browsing .item__add {
 .cart__close:focus-visible,
 .cart__remove:focus-visible,
 .cart__qty button:focus-visible,
-.addon-modal__skip:focus-visible {
-  outline: 3px solid #283618;
-  outline-offset: 2px;
-}
 
 /* the two green-filled controls — dark green on green would disappear, so
    these take the cream side of the same fixed pair */
 .cartbar:focus-visible,
+.cart__tab:focus-visible,
 .cart__more:focus-visible,
 .cart__send:focus-visible,
 .addon-modal__add:focus-visible {

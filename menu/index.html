@@ -16,7 +16,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Oswald:wght@300;400;500;600&family=Playfair+Display:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="menu.css?v=36">
+  <link rel="stylesheet" href="menu.css?v=38">
 </head>
 
 <body>
@@ -891,10 +891,29 @@
 
     <div class="cart__scroll" id="cartScroll">
 
+      <!-- Two tabs, but only once both sides have something in them: a round
+           already sent to look back at AND something new being built. With
+           only one of the two there is nothing to switch between, so the strip
+           stays out of the way and the section keeps its own heading. -->
+      <div class="cart__tabs" id="cartTabs" role="tablist" aria-label="Your order" hidden>
+        <button class="cart__tab" id="tabPrev" type="button" role="tab" aria-controls="cartPrev"
+          aria-selected="false" tabindex="-1">
+          <svg aria-hidden="true">
+            <use href="#i-check" />
+          </svg>
+          <span>Already ordered</span>
+          <span class="cart__tab__n" id="tabPrevN">0</span>
+        </button>
+        <button class="cart__tab" id="tabNew" type="button" role="tab" aria-controls="cartNew" aria-selected="true">
+          <span>Adding now</span>
+          <span class="cart__tab__n" id="tabNewN">0</span>
+        </button>
+      </div>
+
       <!-- orders already sent this sitting. Read-only on purpose: the kitchen
            has them, so a stepper here would promise an edit nobody can honour. -->
       <section class="cart__prev" id="cartPrev" hidden aria-label="Already ordered">
-        <h3 class="cart__prev__title">
+        <h3 class="cart__prev__title" id="cartPrevTitle">
           <svg aria-hidden="true">
             <use href="#i-check" />
           </svg>
@@ -915,8 +934,9 @@
         Want anything else? Tap the <b>+</b> on any item and send a second order to the same table.
       </p>
 
-      <p class="cart__newhead" id="cartNewHead" hidden>Adding now</p>
-      <ul class="cart__list" id="cartList"></ul>
+      <section class="cart__new" id="cartNew" hidden aria-label="Adding now">
+        <ul class="cart__list" id="cartList"></ul>
+      </section>
     </div>
 
     <footer class="cart__foot" id="cartFoot" hidden>
@@ -954,6 +974,11 @@
         <h2 class="addon-modal__title">Add anything else to your drink?</h2>
         <p class="cart__head__sub" id="addonModalDrink"></p>
       </div>
+      <button class="cart__close" id="addonClose" type="button" aria-label="Cancel — don't add this drink">
+        <svg aria-hidden="true">
+          <use href="#i-x" />
+        </svg>
+      </button>
     </header>
 
     <ul class="addon-modal__list" id="addonModalList"></ul>
@@ -965,14 +990,13 @@
     </div>
 
     <footer class="addon-modal__foot">
-      <button type="button" class="addon-modal__skip" id="addonSkip">No thanks</button>
       <button type="button" class="addon-modal__add" id="addonAddBtn">
         Add<span class="addon-modal__addtotal" id="addonAddTotal"></span>
       </button>
     </footer>
   </aside>
 
-  <script src="menu.js?v=30"></script>
+  <script src="menu.js?v=32"></script>
 </body>
 
 </html>
