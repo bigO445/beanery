@@ -181,8 +181,14 @@
   const cartScroll     = $('#cartScroll');
   const cartPrev       = $('#cartPrev');
   const cartPrevList   = $('#cartPrevList');
+  const cartPrevTitle  = $('#cartPrevTitle');
   const cartResume     = $('#cartResume');
-  const cartNewHead    = $('#cartNewHead');
+  const cartNew        = $('#cartNew');
+  const cartTabs       = $('#cartTabs');
+  const tabPrev        = $('#tabPrev');
+  const tabNew         = $('#tabNew');
+  const tabPrevN       = $('#tabPrevN');
+  const tabNewN        = $('#tabNewN');
   const cartSumPrev    = $('#cartSumPrev');
   const cartSumNew     = $('#cartSumNew');
   const cartPrevTotal  = $('#cartPrevTotal');
@@ -328,6 +334,9 @@
     // for the guest to read. A line without one can still sit in the cart, it
     // just cannot be sent — see collectOrderLines().
     else cart.push({ name, price, qty: 1, img: img || null, addons: addonList, note: noteText, posId: posId || null });
+    // whatever they were looking at, adding an item means they are building
+    // the next round — so that is the tab the cart should open on
+    activeTab = 'new';
     saveCart();
     renderCart();
     bumpCartBar();
@@ -393,6 +402,49 @@
       </li>`).join('');
   }
 
+  /* Which of the two lists the browse view is showing. Only ever consulted
+     when both have something in them; with one side empty there is nothing to
+     switch between and renderCart pins it to whichever side has content. */
+  let activeTab = 'new';
+
+  /* The panes are only tabs some of the time, so the roles go on and come off
+     with the strip — a lone tabpanel with no tablist above it announces a
+     control that isn't there. */
+  function setPaneRoles(on) {
+    [[cartPrev, tabPrev, 'Already ordered'], [cartNew, tabNew, 'Adding now']].forEach(([pane, tab, label]) => {
+      if (on) {
+        pane.setAttribute('role', 'tabpanel');
+        pane.setAttribute('aria-labelledby', tab.id);
+        pane.setAttribute('tabindex', '0');
+        pane.removeAttribute('aria-label');
+      } else {
+        pane.removeAttribute('role');
+        pane.removeAttribute('aria-labelledby');
+        pane.removeAttribute('tabindex');
+        pane.setAttribute('aria-label', label);
+      }
+    });
+  }
+
+  function selectTab(name) {
+    activeTab = name;
+    renderCart();
+  }
+
+  tabPrev.addEventListener('click', () => selectTab('prev'));
+  tabNew.addEventListener('click', () => selectTab('new'));
+
+  // arrow keys move between tabs, the pattern a screen-reader user expects
+  // from a tablist
+  cartTabs.addEventListener('keydown', (e) => {
+    const keys = ['ArrowLeft', 'ArrowRight', 'Home', 'End'];
+    if (!keys.includes(e.key)) return;
+    e.preventDefault();
+    const toNew = e.key === 'ArrowRight' || e.key === 'End';
+    selectTab(toNew ? 'new' : 'prev');
+    (toNew ? tabNew : tabPrev).focus();
+  });
+
   /* Two views share the panel: the browse view (previous orders + what is
    * being added now) and the receipt shown straight after sending. Kept as
    * views rather than a second dialog so the table chip, the close button and
@@ -449,9 +501,38 @@
     // between rounds — hence the quieter prompt instead
     cartEmpty.hidden = hasNew || hasPrev;
     cartResume.hidden = hasNew || !hasPrev;
-    // the "Adding now" divider only earns its space when there is a sent
-    // list above it to be told apart from
-    cartNewHead.hidden = !hasNew || !hasPrev;
+
+    /* the tab strip earns its space only when both lists have something in
+       them. With one side empty there is nothing to switch to, so the strip
+       goes away and the surviving list shows on its own. */
+    const tabsOn = hasNew && hasPrev;
+    if (!hasNew) activeTab = 'prev';
+    else if (!hasPrev) activeTab = 'new';
+
+    cartTabs.hidden = !tabsOn;
+    tabPrevN.textContent = String(placedCount());
+    tabNewN.textContent = String(count);
+    setPaneRoles(tabsOn);
+
+    if (tabsOn) {
+      const onNew = activeTab === 'new';
+      tabNew.setAttribute('aria-selected', String(onNew));
+      tabPrev.setAttribute('aria-selected', String(!onNew));
+      // roving tabindex: one stop for the whole strip, arrows move within it
+      tabNew.tabIndex = onNew ? 0 : -1;
+      tabPrev.tabIndex = onNew ? -1 : 0;
+      tabNew.classList.toggle('is-on', onNew);
+      tabPrev.classList.toggle('is-on', !onNew);
+      cartPrev.hidden = onNew;
+      cartNew.hidden = !onNew;
+    } else {
+      cartPrev.hidden = !hasPrev;
+      cartNew.hidden = !hasNew;
+    }
+
+    // the tab already names the list, so the in-pane heading would only
+    // repeat it
+    cartPrevTitle.hidden = tabsOn;
 
     cartFoot.hidden = cartView === 'done' || (!hasNew && !hasPrev);
     cartSumPrev.hidden = !(hasNew && hasPrev);
