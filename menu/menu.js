@@ -140,6 +140,18 @@
 
   const CART_KEY = 'beanery_cart_v1';
 
+  /* Orders already sent to the counter, kept apart from the cart on purpose.
+   * The cart is what the guest can still change; this is what the kitchen is
+   * already making. Merging them into one list would offer an edit nobody can
+   * honour, so they never share a store or a render path. */
+  const ORDERS_KEY = 'beanery_orders_v1';
+
+  /* How long a sitting lasts. A QR token can outlive the guest holding it --
+   * the next person at that table would otherwise open the menu and be shown
+   * someone else's bill. Four hours covers a long lunch and expires well
+   * before the table turns over twice. */
+  const ORDERS_TTL_MS = 4 * 60 * 60 * 1000;
+
   /* Where the menu is read from, and where the finished order goes.
    *
    * Both same-origin on purpose. These are this site's own Worker routes; the
@@ -166,6 +178,22 @@
   const cartSend       = $('#cartSend');
   const cartSendLabel  = $('#cartSendLabel');
   const cartStatus     = $('#cartStatus');
+  const cartScroll     = $('#cartScroll');
+  const cartPrev       = $('#cartPrev');
+  const cartPrevList   = $('#cartPrevList');
+  const cartResume     = $('#cartResume');
+  const cartNewHead    = $('#cartNewHead');
+  const cartSumPrev    = $('#cartSumPrev');
+  const cartSumNew     = $('#cartSumNew');
+  const cartPrevTotal  = $('#cartPrevTotal');
+  const cartNewTotal   = $('#cartNewTotal');
+  const cartTotalLabel = $('#cartTotalLabel');
+  const cartBrowse     = $('#cartBrowse');
+  const cartDone       = $('#cartDone');
+  const cartDoneSub    = $('#cartDoneSub');
+  const cartDoneList   = $('#cartDoneList');
+  const cartDoneTotal  = $('#cartDoneTotal');
+  const cartDoneMore   = $('#cartDoneMore');
 
   const SEND_LABEL_DEFAULT = cartSendLabel.textContent;
 
@@ -230,6 +258,46 @@
     }
   }
 
+  /* ---------- orders already sent ----------
+   *
+   * Stored under the QR token that sent them. A different token is a different
+   * table (or a re-issued one), and inheriting the last guest's order there
+   * would be worse than forgetting it, so a mismatch reads as none. Anything
+   * older than the sitting is dropped for the same reason. */
+
+  let placed = [];
+
+  function loadPlaced() {
+    if (!canOrder) return [];
+    let raw = null;
+    try { raw = JSON.parse(localStorage.getItem(ORDERS_KEY)); } catch { return []; }
+    if (!raw || raw.token !== QR_TOKEN || !Array.isArray(raw.orders)) return [];
+    const cutoff = Date.now() - ORDERS_TTL_MS;
+    return raw.orders.filter((o) => o && Array.isArray(o.lines) && typeof o.at === 'number' && o.at > cutoff);
+  }
+
+  function savePlaced() {
+    try {
+      localStorage.setItem(ORDERS_KEY, JSON.stringify({ token: QR_TOKEN, orders: placed }));
+    } catch {
+      /* same as the cart: storage off just means it won't survive a reload */
+    }
+  }
+
+  placed = loadPlaced();
+
+  /* A sent line is a receipt, not a cart row: copied by value so a later
+   * re-price or edit of the live cart can never reach back and rewrite what
+   * the guest was already told they'd pay. posId is dropped with it — this
+   * copy exists to be read, never to be sent again. */
+  const snapshotLine = (l) => ({
+    name: l.name,
+    price: l.price,
+    qty: l.qty,
+    addons: (l.addons || []).map((a) => ({ name: a.name, price: a.price })),
+    note: l.note || '',
+  });
+
   function bumpCartBar() {
     cartBtn.classList.remove('cartbar--bump');
     void cartBtn.offsetWidth; // restart the animation on back-to-back adds
@@ -275,24 +343,125 @@
   const cartCount = () => cart.reduce((n, l) => n + l.qty, 0);
   const cartTotal = () => cart.reduce((sum, l) => sum + lineUnitPrice(l) * l.qty, 0);
 
+  const linesTotal  = (lines) => lines.reduce((sum, l) => sum + lineUnitPrice(l) * l.qty, 0);
+  const linesCount  = (lines) => lines.reduce((n, l) => n + l.qty, 0);
+  const placedTotal = () => placed.reduce((sum, o) => sum + linesTotal(o.lines), 0);
+  const placedCount = () => placed.reduce((n, o) => n + linesCount(o.lines), 0);
+
+  const timeOf = (ms) => new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+
+  /* One sent line, rendered the same whether it appears on the receipt or in
+   * the "already ordered" list — same money in both places, or the guest is
+   * right to distrust both. Names are escaped like notes: they mostly come
+   * from the page, but a POS-supplied one has been through a till nobody
+   * here controls. */
+  const sentLineHtml = (line) => {
+    const unit = lineUnitPrice(line);
+    const addons = (line.addons || []).length
+      ? `<ul class="cart__sent__addons">${line.addons.map((a) => `
+          <li><span>${escapeHtml(a.name)}</span><span class="cart__sent__plus">+${fmt(a.price)}</span></li>`).join('')}
+        </ul>`
+      : '';
+    const note = line.note ? `<p class="cart__sent__note">"${escapeHtml(line.note)}"</p>` : '';
+    return `
+      <li class="cart__sent__line">
+        <span class="cart__sent__qty">${line.qty}&times;</span>
+        <span class="cart__sent__body">
+          <span class="cart__sent__name">${escapeHtml(line.name)}</span>
+          ${addons}${note}
+        </span>
+        <span class="cart__sent__price">${fmt(unit * line.qty)}</span>
+      </li>`;
+  };
+
+  /* Each send is its own group, numbered and timestamped. Two rounds of the
+   * same drink an hour apart are two facts about the evening, not one line
+   * with qty 2 — collapsing them would lose which round is already on the
+   * table. */
+  function renderPlaced() {
+    cartPrev.hidden = placed.length === 0;
+    if (placed.length === 0) { cartPrevList.innerHTML = ''; return; }
+
+    cartPrevList.innerHTML = placed.map((o, i) => `
+      <li class="cart__order">
+        <div class="cart__order__head">
+          <span class="cart__order__label">Order ${i + 1}</span>
+          <span class="cart__order__time">${escapeHtml(timeOf(o.at))}</span>
+          <span class="cart__order__sum">${fmt(linesTotal(o.lines))} IQD</span>
+        </div>
+        <ul class="cart__sent">${o.lines.map(sentLineHtml).join('')}</ul>
+      </li>`).join('');
+  }
+
+  /* Two views share the panel: the browse view (previous orders + what is
+   * being added now) and the receipt shown straight after sending. Kept as
+   * views rather than a second dialog so the table chip, the close button and
+   * the focus trap all stay where the guest just left them. */
+  let cartView = 'cart';
+
+  function setCartView(view) {
+    cartView = view;
+    cartDone.hidden = view !== 'done';
+    cartScroll.hidden = view === 'done';
+    renderCart();
+  }
+
+  const sendLabelText = () => (placed.length ? 'Send these too' : SEND_LABEL_DEFAULT);
+
   function renderCart() {
     const count = cartCount();
-    const total = cartTotal();
-    const isEmpty = cart.length === 0;
+    const newTotal = cartTotal();
+    const prevTotal = placedTotal();
+    const grand = newTotal + prevTotal;
+    const hasNew = cart.length > 0;
+    const hasPrev = placed.length > 0;
 
-    cartBadge.hidden = isEmpty;
-    cartBadge.textContent = String(count);
+    /* the floating bar. Three states, because "nothing yet", "ready to send"
+       and "already with the counter" are three different things to a guest. */
+    cartBadge.hidden = !hasNew && !hasPrev;
+    cartBadge.classList.toggle('cartbar__badge--check', !hasNew && hasPrev);
+    if (hasNew) cartBadge.textContent = String(count);
+    else if (hasPrev) cartBadge.innerHTML = '<svg aria-hidden="true"><use href="#i-check" /></svg>';
 
-    cartBarLabel.textContent = isEmpty ? 'Tap to order' : 'View order';
-    cartBarTotalEl.hidden = isEmpty;
-    cartBarTotalEl.textContent = `${fmt(total)} IQD`;
-    cartBtn.classList.toggle('cartbar--invite', isEmpty);
+    cartBarLabel.textContent = hasNew ? 'View order' : hasPrev ? 'Ordered' : 'Tap to order';
+    cartBarTotalEl.hidden = !hasNew && !hasPrev;
+    cartBarTotalEl.textContent = `${fmt(grand)} IQD`;
+    cartBtn.classList.toggle('cartbar--invite', !hasNew && !hasPrev);
+    cartBtn.classList.toggle('cartbar--sent', !hasNew && hasPrev);
+    cartBtn.setAttribute('aria-label', hasNew
+      ? `View your order — ${count} ${count === 1 ? 'item' : 'items'}, ${fmt(grand)} IQD`
+      : hasPrev
+        ? `Ordered — ${fmt(prevTotal)} IQD sent to the counter. Open to see it or add more.`
+        : 'View your order — order straight from your table');
 
-    cartEmpty.hidden = cart.length > 0;
-    cartFoot.hidden = cart.length === 0;
-    cartCountLabel.textContent = cart.length === 0
-      ? 'Your cart is empty'
-      : `${count} ${count === 1 ? 'item' : 'items'}`;
+    cartCountLabel.textContent = hasNew && hasPrev
+      ? `${count} new · ${placedCount()} already ordered`
+      : hasNew
+        ? `${count} ${count === 1 ? 'item' : 'items'}`
+        : hasPrev
+          ? `${placedCount()} ${placedCount() === 1 ? 'item' : 'items'} sent to the counter`
+          : 'Your cart is empty';
+
+    renderPlaced();
+
+    // the big empty illustration is for a guest who has ordered nothing at
+    // all; once something is at the counter the panel isn't empty, it's just
+    // between rounds — hence the quieter prompt instead
+    cartEmpty.hidden = hasNew || hasPrev;
+    cartResume.hidden = hasNew || !hasPrev;
+    // the "Adding now" divider only earns its space when there is a sent
+    // list above it to be told apart from
+    cartNewHead.hidden = !hasNew || !hasPrev;
+
+    cartFoot.hidden = cartView === 'done' || (!hasNew && !hasPrev);
+    cartSumPrev.hidden = !(hasNew && hasPrev);
+    cartSumNew.hidden = !(hasNew && hasPrev);
+    cartPrevTotal.textContent = fmt(prevTotal);
+    cartNewTotal.textContent = fmt(newTotal);
+    cartTotalLabel.textContent = hasPrev ? 'Table total' : 'Total';
+    cartSend.hidden = !hasNew;
+    cartBrowse.hidden = hasNew;
+    if (!cartSend.disabled) cartSendLabel.textContent = sendLabelText();
 
     cartListEl.innerHTML = '';
     cart.forEach((line, i) => {
@@ -303,11 +472,12 @@
         ? `<img src="${line.img}" alt="" loading="lazy">`
         : `<span class="cart__item__avatar">${line.name.trim().charAt(0).toUpperCase()}</span>`;
       const unit = lineUnitPrice(line);
+      const safeName = escapeHtml(line.name);
       const addonNodes = hasAddons
-        ? `<ul class="cart__addons" aria-label="Add-ons on this ${line.name}">
+        ? `<ul class="cart__addons" aria-label="Add-ons on this ${safeName}">
             ${line.addons.map((a) => `
             <li class="cart__addons__node">
-              <span class="cart__addons__name">${a.name}</span>
+              <span class="cart__addons__name">${escapeHtml(a.name)}</span>
               <span class="cart__addons__price">+${fmt(a.price)}</span>
             </li>`).join('')}
           </ul>`
@@ -318,8 +488,8 @@
       li.innerHTML = `
         <div class="cart__item__top">
           <span class="cart__item__media">${media}</span>
-          <span class="cart__item__name">${line.name}</span>
-          <button type="button" class="cart__remove" aria-label="Remove ${line.name}">
+          <span class="cart__item__name">${safeName}</span>
+          <button type="button" class="cart__remove" aria-label="Remove ${safeName}">
             <svg aria-hidden="true"><use href="#i-trash" /></svg>
           </button>
         </div>
@@ -329,11 +499,11 @@
           <span class="cart__item__unit">${fmt(unit)} IQD each</span>
           <div class="cart__item__right">
             <div class="cart__qty">
-              <button type="button" class="cart__qty--minus" aria-label="One fewer ${line.name}">
+              <button type="button" class="cart__qty--minus" aria-label="One fewer ${safeName}">
                 <svg aria-hidden="true"><use href="#i-minus" /></svg>
               </button>
               <span>${line.qty}</span>
-              <button type="button" class="cart__qty--plus" aria-label="One more ${line.name}">
+              <button type="button" class="cart__qty--plus" aria-label="One more ${safeName}">
                 <svg aria-hidden="true"><use href="#i-plus" /></svg>
               </button>
             </div>
@@ -346,7 +516,7 @@
       cartListEl.appendChild(li);
     });
 
-    cartTotalEl.firstChild.textContent = `${fmt(total)} `;
+    cartTotalEl.firstChild.textContent = `${fmt(grand)} `;
   }
 
   /* ---------- add-ons popup ----------
@@ -603,6 +773,12 @@
   $$('.item').forEach(wireItemAdd);
 
   function openCart() {
+    // the receipt is a one-time confirmation of a send, not a screen to come
+    // back to — reopening always lands on the browse view, where the sent
+    // order is still listed under "Already ordered"
+    if (cartView !== 'cart') setCartView('cart');
+    cartStatus.textContent = '';
+    cartStatus.className = 'cart__status';
     cartOverlay.hidden = false;
     cartPanel.hidden = false;
     document.body.classList.add('cart-open');
@@ -704,12 +880,21 @@
 
     try {
       await sendOrderToPOS(order);
-      cartStatus.textContent = 'Order placed — the counter has it.';
-      cartStatus.className = 'cart__status cart__status--ok';
+
+      // the cart empties into the record rather than just emptying: a guest
+      // who taps "place order" and watches the list vanish has no way to
+      // check what they actually asked for
+      const record = { at: Date.now(), lines: cart.map(snapshotLine) };
+      placed.push(record);
+      savePlaced();
       cart = [];
       saveCart();
-      renderCart();
-      window.setTimeout(closeCart, 1400);
+
+      cartStatus.textContent = '';
+      cartStatus.className = 'cart__status';
+      renderDone(record);
+      setCartView('done');
+      cartDone.focus();
     } catch (err) {
       cartStatus.textContent = err && err.posMessage
         ? err.posMessage
@@ -717,9 +902,25 @@
       cartStatus.className = 'cart__status cart__status--error';
     } finally {
       cartSend.disabled = false;
-      cartSendLabel.textContent = SEND_LABEL_DEFAULT;
+      cartSendLabel.textContent = sendLabelText();
     }
   });
+
+  /* The receipt for the order that just went through. Its own totals, not the
+     table's: this screen answers "what did I just send", and the running bill
+     is one tap away under "Already ordered". */
+  function renderDone(record) {
+    cartDoneList.innerHTML = record.lines.map(sentLineHtml).join('');
+    cartDoneTotal.firstChild.textContent = `${fmt(linesTotal(record.lines))} `;
+    cartDoneSub.textContent = TABLE_NUMBER != null
+      ? `Sent to the counter — table ${TABLE_NUMBER}.`
+      : 'Sent to the counter.';
+  }
+
+  // both "add more items" buttons mean the same thing: back to the menu, with
+  // what was sent kept safe behind the cart button
+  cartDoneMore.addEventListener('click', () => { setCartView('cart'); closeCart(); });
+  cartBrowse.addEventListener('click', closeCart);
 
   renderCart();
 
