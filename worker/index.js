@@ -138,11 +138,18 @@ export default {
       return env.ASSETS.fetch(request);
     }
 
-    if (!env.POS_ORIGIN || !env.POS_PROXY_SECRET) {
-      // Misconfiguration, not a guest error. Say so plainly in the log and give
-      // the guest something true but uninformative.
-      console.error('POS_ORIGIN and POS_PROXY_SECRET must both be set');
-      return json({ error: 'Ordering is not configured.' }, 503);
+    // Misconfiguration, not a guest error.
+    //
+    // The missing binding is NAMED. "Ordering is not configured" on its own
+    // sends whoever is on call guessing between the dashboard and the config
+    // file, at the exact moment orders are failing. Only key names are
+    // reported, never values -- both names are already public in this repo, so
+    // there is nothing here an attacker did not have, and being able to read
+    // it from a curl is worth far more than the pretence of hiding it.
+    const missing = ['POS_ORIGIN', 'POS_PROXY_SECRET'].filter((k) => !env[k]);
+    if (missing.length) {
+      console.error('missing binding(s): ' + missing.join(', '));
+      return json({ error: 'Ordering is not configured.', missing }, 503);
     }
 
     const clientIp = request.headers.get('CF-Connecting-IP') || '';
