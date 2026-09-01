@@ -422,11 +422,7 @@
         },
         {
           "name": "Redbull",
-          "price": null
-        },
-        {
-          "name": "Orange Juice",
-          "price": null
+          "price": 2000
         }
       ]
     },
