@@ -23,27 +23,32 @@
         {
           "name": "Espresso",
           "price": 1500,
-          "image": "single-espresso.webp"
+          "image": "single-espresso.webp",
+          "posId": "prod_1787863617451_qx5pcp_espresso-espresso"
         },
         {
           "name": "Double Espresso",
           "price": 3000,
-          "image": "double-espresso.webp"
+          "image": "double-espresso.webp",
+          "posId": "prod_1787863617451_qx5pcp_espresso-double-espresso"
         },
         {
           "name": "Macchiato",
           "price": 3000,
-          "image": "macchiato.webp"
+          "image": "macchiato.webp",
+          "posId": "prod_1787863617451_qx5pcp_espresso-macchiato"
         },
         {
           "name": "Cortado",
           "price": 4500,
-          "image": "cortado.webp"
+          "image": "cortado.webp",
+          "posId": "prod_1787863617451_qx5pcp_espresso-cortado"
         },
         {
           "name": "Turkish Coffee",
           "price": 1500,
-          "image": "turkish-coffee.webp"
+          "image": "turkish-coffee.webp",
+          "posId": "prod_1787863617451_qx5pcp_espresso-turkish-coffee"
         }
       ]
     },
@@ -58,37 +63,44 @@
         {
           "name": "Cappuccino",
           "price": 4500,
-          "image": "cappuccino.webp"
+          "image": "cappuccino.webp",
+          "posId": "prod_1787863617451_qx5pcp_classic-coffee-cappuccino"
         },
         {
           "name": "Latte",
           "price": 4500,
-          "image": "latte.webp"
+          "image": "latte.webp",
+          "posId": "prod_1787863617451_qx5pcp_classic-coffee-latte"
         },
         {
           "name": "Spanish Latte",
           "price": 4000,
-          "image": "spanish-latte.webp"
+          "image": "spanish-latte.webp",
+          "posId": "prod_1787863617451_qx5pcp_classic-coffee-spanish-latte"
         },
         {
           "name": "Vanilla Latte",
           "price": 4000,
-          "image": "vanilla-latte.webp"
+          "image": "vanilla-latte.webp",
+          "posId": "prod_1787863617451_qx5pcp_classic-coffee-vanilla-latte"
         },
         {
           "name": "Caramel Latte",
           "price": 4000,
-          "image": "caramel-latte.webp"
+          "image": "caramel-latte.webp",
+          "posId": "prod_1787863617451_qx5pcp_classic-coffee-caramel-latte"
         },
         {
           "name": "Mocha",
           "price": 4000,
-          "image": "mocha.webp"
+          "image": "mocha.webp",
+          "posId": "prod_1787863617451_qx5pcp_classic-coffee-mocha"
         },
         {
           "name": "White Mocha",
           "price": 4000,
-          "image": "white-mocha.webp"
+          "image": "white-mocha.webp",
+          "posId": "prod_1787863617451_qx5pcp_classic-coffee-white-mocha"
         }
       ]
     },
@@ -103,21 +115,24 @@
         {
           "name": "V60",
           "price": 4000,
-          "image": "brew.webp"
+          "image": "brew.webp",
+          "posId": "prod_1787863617451_qx5pcp_manual-brew-v60"
         },
         {
           "name": "Chemex",
           "price": 4500,
           "image": "brew.webp",
           "placeholder": true,
-          "needsPhoto": "Chemex is an hourglass vessel, visually distinct from the V60 cone currently borrowed here."
+          "needsPhoto": "Chemex is an hourglass vessel, visually distinct from the V60 cone currently borrowed here.",
+          "posId": "prod_1787863617451_qx5pcp_manual-brew-chemex"
         },
         {
           "name": "Cold Brew",
           "price": 4000,
           "image": "amricano.webp",
           "placeholder": true,
-          "needsPhoto": "Borrowing the iced americano. Cold brew should read darker and served without crema."
+          "needsPhoto": "Borrowing the iced americano. Cold brew should read darker and served without crema.",
+          "posId": "prod_1787863617451_qx5pcp_manual-brew-cold-brew"
         }
       ]
     },
@@ -132,22 +147,26 @@
         {
           "name": "Iced Americano",
           "price": 4000,
-          "image": "amricano.webp"
+          "image": "amricano.webp",
+          "posId": "prod_1787863617451_qx5pcp_iced-coffee-iced-americano"
         },
         {
           "name": "Iced Latte",
           "price": 4500,
-          "image": "iced-latte.webp"
+          "image": "iced-latte.webp",
+          "posId": "prod_1787863617451_qx5pcp_iced-coffee-iced-latte"
         },
         {
           "name": "Iced Spanish Latte",
           "price": 4500,
-          "image": "iced-spanish-latte.webp"
+          "image": "iced-spanish-latte.webp",
+          "posId": "prod_1787863617451_qx5pcp_iced-coffee-iced-spanish-latte"
         },
         {
           "name": "Iced Caramel Latte",
           "price": 4500,
-          "image": "iced-caramel-latte.webp"
+          "image": "iced-caramel-latte.webp",
+          "posId": "prod_1787863617451_qx5pcp_iced-coffee-iced-caramel-latte"
         }
       ]
     },
@@ -164,32 +183,38 @@
           "price": 6000,
           "image": "matcha.webp",
           "placeholder": true,
-          "needsPhoto": "This is the iced version in a clear cup. Classic Matcha should be served hot in a ceramic mug."
+          "needsPhoto": "This is the iced version in a clear cup. Classic Matcha should be served hot in a ceramic mug.",
+          "posId": "prod_1787863617451_qx5pcp_matcha-classic-matcha"
         },
         {
           "name": "Iced Matcha",
           "price": 6000,
-          "image": "matcha.webp"
+          "image": "matcha.webp",
+          "posId": "prod_1787863617451_qx5pcp_matcha-iced-matcha"
         },
         {
           "name": "Vanilla Matcha",
           "price": 6000,
-          "image": "matcha-vanilla.webp"
+          "image": "matcha-vanilla.webp",
+          "posId": "prod_1787863617451_qx5pcp_matcha-vanilla-matcha"
         },
         {
           "name": "Strawberry Matcha",
           "price": 6000,
-          "image": "match-strawberry.webp"
+          "image": "match-strawberry.webp",
+          "posId": "prod_1787863617451_qx5pcp_matcha-strawberry-matcha"
         },
         {
           "name": "Coconut Matcha",
           "price": 6000,
-          "image": "matcha-coconut.webp"
+          "image": "matcha-coconut.webp",
+          "posId": "prod_1787863617451_qx5pcp_matcha-coconut-matcha"
         },
         {
           "name": "Ube Matcha",
           "price": 6000,
-          "image": "matcha-ube.webp"
+          "image": "matcha-ube.webp",
+          "posId": "prod_1787863617451_qx5pcp_matcha-ube-matcha"
         }
       ]
     },
@@ -207,27 +232,32 @@
         {
           "name": "Saffron",
           "desc": "Steeped saffron milk, one thread on top",
-          "image": "cfs-saffron.webp"
+          "image": "cfs-saffron.webp",
+          "posId": "prod_1787863617451_qx5pcp_cold-foam-signatures-saffron"
         },
         {
           "name": "Pistachio",
           "desc": "Roasted pistachio, salted foam",
-          "image": "cfs-pistachio.webp"
+          "image": "cfs-pistachio.webp",
+          "posId": "prod_1787863617451_qx5pcp_cold-foam-signatures-pistachio"
         },
         {
           "name": "Ube",
           "desc": "Purple yam, coconut edge",
-          "image": "cfs-ube.webp"
+          "image": "cfs-ube.webp",
+          "posId": "prod_1787863617451_qx5pcp_cold-foam-signatures-ube"
         },
         {
           "name": "Vanilla Sweet Cream",
           "desc": "Real vanilla, heavy cream",
-          "image": "cfs-vanilla.webp"
+          "image": "cfs-vanilla.webp",
+          "posId": "prod_1787863617451_qx5pcp_cold-foam-signatures-vanilla-sweet-cream"
         },
         {
           "name": "Brown Sugar Cinnamon",
           "desc": "Dark sugar syrup, cinnamon dust",
-          "image": "cfs-ciminin.webp"
+          "image": "cfs-ciminin.webp",
+          "posId": "prod_1787863617451_qx5pcp_cold-foam-signatures-brown-sugar-cinnamon"
         }
       ]
     },
@@ -242,12 +272,14 @@
         {
           "name": "Hazelnut Frappé",
           "price": 5000,
-          "image": "frappe-hazelnut.webp"
+          "image": "frappe-hazelnut.webp",
+          "posId": "prod_1787863617451_qx5pcp_frapp-hazelnut-frapp"
         },
         {
           "name": "Caramel Frappé",
           "price": 5000,
-          "image": "frappe-carmel.webp"
+          "image": "frappe-carmel.webp",
+          "posId": "prod_1787863617451_qx5pcp_frapp-caramel-frapp"
         }
       ]
     },
@@ -262,17 +294,20 @@
         {
           "name": "Chocolate Milkshake",
           "price": 5000,
-          "image": "chocolate-milkshake.webp"
+          "image": "chocolate-milkshake.webp",
+          "posId": "prod_1787863617451_qx5pcp_milkshakes-chocolate-milkshake"
         },
         {
           "name": "Pistachio Milkshake",
           "price": 5000,
-          "image": "pistachio-milkshake.webp"
+          "image": "pistachio-milkshake.webp",
+          "posId": "prod_1787863617451_qx5pcp_milkshakes-pistachio-milkshake"
         },
         {
           "name": "Vanilla Milkshake",
           "price": 5000,
-          "image": "vanilla-milkshake.webp"
+          "image": "vanilla-milkshake.webp",
+          "posId": "prod_1787863617451_qx5pcp_milkshakes-vanilla-milkshake"
         }
       ]
     },
@@ -287,17 +322,20 @@
         {
           "name": "Saffron Milk",
           "price": 6000,
-          "image": "sm-saffron.webp"
+          "image": "sm-saffron.webp",
+          "posId": "prod_1787863617451_qx5pcp_signature-milk-saffron-milk"
         },
         {
           "name": "Ube Milk",
           "price": 6000,
-          "image": "sm-ube.webp"
+          "image": "sm-ube.webp",
+          "posId": "prod_1787863617451_qx5pcp_signature-milk-ube-milk"
         },
         {
           "name": "Black Sesame Milk",
           "price": 6000,
-          "image": "sm-blacksesame.webp"
+          "image": "sm-blacksesame.webp",
+          "posId": "prod_1787863617451_qx5pcp_signature-milk-black-sesame-milk"
         }
       ]
     },
@@ -313,44 +351,52 @@
           "name": "Passion Fruit Lemonade",
           "price": 5000,
           "image": "passion-fruit-iced-tea.webp",
-          "check": "Filename says iced tea but the shot is the bright yellow lemonade. Rename the file or swap with icetea-passionfruit.webp."
+          "check": "Filename says iced tea but the shot is the bright yellow lemonade. Rename the file or swap with icetea-passionfruit.webp.",
+          "posId": "prod_1787863617451_qx5pcp_fresh-refreshing-passion-fruit-lemonade"
         },
         {
           "name": "Strawberry Lemonade",
           "price": 5000,
-          "image": "strawberry-lemonade.webp"
+          "image": "strawberry-lemonade.webp",
+          "posId": "prod_1787863617451_qx5pcp_fresh-refreshing-strawberry-lemonade"
         },
         {
           "name": "Peach Iced Tea",
           "price": 5000,
-          "image": "peach-iced-tea.webp"
+          "image": "peach-iced-tea.webp",
+          "posId": "prod_1787863617451_qx5pcp_fresh-refreshing-peach-iced-tea"
         },
         {
           "name": "Passion Fruit Iced Tea",
           "price": 5000,
           "image": "icetea-passionfruit.webp",
-          "check": "Paired with the item above; the amber tea-coloured shot."
+          "check": "Paired with the item above; the amber tea-coloured shot.",
+          "posId": "prod_1787863617451_qx5pcp_fresh-refreshing-passion-fruit-iced-tea"
         },
         {
           "name": "Classic Mojito",
           "price": 5000,
-          "image": "mojito.webp"
+          "image": "mojito.webp",
+          "posId": "prod_1787863617451_qx5pcp_fresh-refreshing-classic-mojito"
         },
         {
           "name": "Berry Mojito",
           "price": 5000,
-          "image": "berry-mojito.webp"
+          "image": "berry-mojito.webp",
+          "posId": "prod_1787863617451_qx5pcp_fresh-refreshing-berry-mojito"
         },
         {
           "name": "Fresh Orange Juice",
           "price": 5000,
-          "image": "orange-juice.webp"
+          "image": "orange-juice.webp",
+          "posId": "prod_1787863617451_qx5pcp_fresh-refreshing-fresh-orange-juice"
         },
         {
           "name": "Golden Lemon",
           "price": 5000,
           "image": "golden-lemon.webp",
-          "badge": "New"
+          "badge": "New",
+          "posId": "prod_1787863617451_qx5pcp_fresh-refreshing-golden-lemon"
         }
       ]
     },
@@ -365,42 +411,50 @@
         {
           "name": "Cheesecake",
           "price": 5000,
-          "image": "cheesecake.webp"
+          "image": "cheesecake.webp",
+          "posId": "prod_1787863617451_qx5pcp_desserts-cheesecake"
         },
         {
           "name": "Chocolate Cake",
           "price": 6000,
-          "image": "chocolate-cake.webp"
+          "image": "chocolate-cake.webp",
+          "posId": "prod_1787863617451_qx5pcp_desserts-chocolate-cake"
         },
         {
           "name": "Brownie",
           "price": 4000,
-          "image": "brownie.webp"
+          "image": "brownie.webp",
+          "posId": "prod_1787863617451_qx5pcp_desserts-brownie"
         },
         {
           "name": "Cookies",
           "price": 3000,
-          "image": "cookies.webp"
+          "image": "cookies.webp",
+          "posId": "prod_1787863617451_qx5pcp_desserts-cookies"
         },
         {
           "name": "Croissant",
           "price": 3000,
-          "image": "croissant.webp"
+          "image": "croissant.webp",
+          "posId": "prod_1787863617451_qx5pcp_desserts-croissant"
         },
         {
           "name": "Tiramisu",
           "price": 5000,
-          "image": "tiramisu.webp"
+          "image": "tiramisu.webp",
+          "posId": "prod_1787863617451_qx5pcp_desserts-tiramisu"
         },
         {
           "name": "Trileçe",
           "price": 5000,
-          "image": "trilece.webp"
+          "image": "trilece.webp",
+          "posId": "prod_1787863617451_qx5pcp_desserts-trile-e"
         },
         {
           "name": "Ice Cream Scoop",
           "price": 1500,
-          "image": "ice-cream-scoop.webp"
+          "image": "ice-cream-scoop.webp",
+          "posId": "prod_1787863617451_qx5pcp_desserts-ice-cream-scoop"
         }
       ]
     },
@@ -414,15 +468,24 @@
       "items": [
         {
           "name": "Water",
-          "price": 500
+          "price": 500,
+          "posId": "id_1787918781516_fgmi7awpt"
+        },
+        {
+          "name": "Pepsi",
+          "price": 1000,
+          "posId": "id_1788275229278_v0dktu5s5"
         },
         {
           "name": "San Pellegrino Sparkling Water",
-          "price": 2000
+          "price": 2000,
+          "_posIdNote": "Pinned by hand: the till calls this \"San Pellegrino\", the menu spells it out for guests. Name matching cannot bridge that, and neither name is wrong for its audience.",
+          "posId": "id_1788275541022_h8edkm9cx"
         },
         {
           "name": "Redbull",
-          "price": 2000
+          "price": 2000,
+          "posId": "id_1788275436604_5g981oion"
         }
       ]
     },
@@ -436,23 +499,28 @@
       "items": [
         {
           "name": "Extra Espresso Shot",
-          "price": 1500
+          "price": 1500,
+          "posId": "prod_1787863617451_qx5pcp_add-ons-extra-espresso-shot"
         },
         {
           "name": "Extra Milk",
-          "price": 1500
+          "price": 1500,
+          "posId": "prod_1787863617451_qx5pcp_add-ons-extra-milk"
         },
         {
           "name": "Flavor Syrup",
-          "price": 1500
+          "price": 1500,
+          "posId": "prod_1787863617451_qx5pcp_add-ons-flavor-syrup"
         },
         {
           "name": "Cold Foam",
-          "price": 1500
+          "price": 1500,
+          "posId": "prod_1787863617451_qx5pcp_add-ons-cold-foam"
         },
         {
           "name": "Ice Cream Scoop",
-          "price": 1500
+          "price": 1500,
+          "posId": "prod_1787863617451_qx5pcp_add-ons-ice-cream-scoop"
         }
       ]
     }

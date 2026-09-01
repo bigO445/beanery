@@ -1,9 +1,36 @@
 {
   "name": "beanery",
   "compatibility_date": "2026-08-29",
+
+  // The Worker now runs in front of the static site so guest orders can reach
+  // the POS without the POS hostname ever entering a guest's browser. Anything
+  // that is not /api/* falls straight through to the assets below, so the
+  // landing page and the menu are served exactly as before.
+  //
+  // worker/ is deliberately NOT copied into dist/ by the build command: it is
+  // the script, not an asset. Publishing it as an asset would serve the source
+  // — including the shape of the ordering API — at /worker/index.js.
+  "main": "worker/index.js",
+
   "assets": {
     "directory": "./dist",
+    // Named so the Worker can hand non-API requests back to the asset server
+    // with env.ASSETS.fetch(request).
+    "binding": "ASSETS",
     "html_handling": "auto-trailing-slash",
     "not_found_handling": "404-page"
+  },
+
+  "vars": {
+    // The POS origin. Not a secret — hostnames leak — but it lives here rather
+    // than in the Worker source so it can be pointed at a staging POS without
+    // editing code. No trailing slash.
+    "POS_ORIGIN": "https://beanery.base60labs.io"
   }
+
+  // POS_PROXY_SECRET is a SECRET, not a var. Set it with:
+  //   npx wrangler secret put POS_PROXY_SECRET
+  // and give the POS the same value as PUBLIC_PROXY_SECRET. Until both sides
+  // have it the POS still answers unproxied requests, which is what keeps the
+  // currently printed QR sheets working during the changeover.
 }

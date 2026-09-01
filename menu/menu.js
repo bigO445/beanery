@@ -140,10 +140,14 @@
 
   const CART_KEY = 'beanery_cart_v1';
 
-  // Where the finished order gets POSTed. Wiring this up to the real POS
-  // (endpoint, auth, register/table selection, retries) is the backend's
-  // job — this file's responsibility ends at handing the order JSON off.
-  const POS_ENDPOINT = '/pos/order';
+  /* Where the menu is read from, and where the finished order goes.
+   *
+   * Both same-origin on purpose. These are this site's own Worker routes; the
+   * Worker adds a shared secret and forwards to the POS. So the POS hostname
+   * never appears in this file or in a guest's network tab, and there is no
+   * CORS to configure, because nothing here is cross-origin. */
+  const MENU_ENDPOINT  = '/api/menu';
+  const ORDER_ENDPOINT = '/api/order';
 
   const cartBtn        = $('#cartBtn');
   const cartBadge      = $('#cartBadge');
@@ -165,17 +169,34 @@
 
   const SEND_LABEL_DEFAULT = cartSendLabel.textContent;
 
-  // the table this menu was opened for — printed on the QR code as
-  // e.g. /?table=12 — read once; it doesn't change for the life of the page
-  const TABLE_NUMBER = new URLSearchParams(window.location.search).get('table');
-  if (TABLE_NUMBER) {
-    cartTableNum.textContent = TABLE_NUMBER;
-    cartTable.hidden = false;
-  }
+  /* The QR token this menu was opened with: /menu/?t=<64 hex chars>.
+   *
+   * A token rather than a table number, because it is the credential. It is
+   * what tells the POS both which cafe and which table, and unlike "?table=7"
+   * it cannot be typed from a guess — otherwise anyone could send drinks to
+   * anyone's table.
+   *
+   * No token means someone opened beanery-cafe.com/menu/ directly instead of
+   * scanning. They get the menu; they do not get to order. */
+  const QR_TOKEN = (new URLSearchParams(window.location.search).get('t') || '').trim();
+  const canOrder = /^[a-f0-9]{64}$/.test(QR_TOKEN);
+
+  // Filled in from the POS once the live menu loads — the QR knows the table,
+  // this page does not until it asks.
+  let TABLE_NUMBER = null;
+
+  if (!canOrder) document.body.classList.add('is-browsing');
 
   const parsePrice = (text) => {
     const digits = (text || '').replace(/[^\d]/g, '');
     return digits ? parseInt(digits, 10) : NaN;
+  };
+
+  // The POS price if the live sync has supplied one, else what is printed on
+  // the page. Read at click time, never captured in a closure.
+  const priceOf = (el, fallback) => {
+    const live = Number(el && el.dataset ? el.dataset.price : NaN);
+    return Number.isFinite(live) && live > 0 ? live : fallback;
   };
 
   // strips the "New" ribbon (and anything else non-text) out of a name
@@ -226,7 +247,7 @@
 
   const lineUnitPrice = (line) => line.price + (line.addons || []).reduce((s, a) => s + a.price, 0);
 
-  function addToCart(name, price, img, addons, note) {
+  function addToCart(name, price, img, addons, note, posId) {
     const addonList = addons && addons.length ? addons : [];
     const noteText = (note || '').trim();
     const key = addonsKey(addonList);
@@ -235,7 +256,10 @@
     const line = cart.find((l) => l.name === name && l.price === price
       && addonsKey(l.addons) === key && (l.note || '') === noteText);
     if (line) line.qty += 1;
-    else cart.push({ name, price, qty: 1, img: img || null, addons: addonList, note: noteText });
+    // posId is what the POS actually orders by; the name and price here are
+    // for the guest to read. A line without one can still sit in the cart, it
+    // just cannot be sent — see collectOrderLines().
+    else cart.push({ name, price, qty: 1, img: img || null, addons: addonList, note: noteText, posId: posId || null });
     saveCart();
     renderCart();
     bumpCartBar();
@@ -384,11 +408,14 @@
   const addonAddTotalEl = $('#addonAddTotal');
   const addonNoteInput  = $('#addonNoteInput');
 
+  // Add-ons carry a posId of their own: the POS sells them as ordinary
+  // products, so "Cappuccino + Extra Shot" leaves here as two order lines even
+  // though the guest sees one. The cashier sees both, and the total agrees.
   const addonDefs = $$('#addons .item').map((row) => {
     const nameEl = $('.item__name', row);
     const priceEl = $('.item__price', row);
     const price = priceEl ? parsePrice(priceEl.textContent) : NaN;
-    return Number.isNaN(price) ? null : { name: cleanName(nameEl), price };
+    return Number.isNaN(price) ? null : { name: cleanName(nameEl), price, posId: row.dataset.posId || null };
   }).filter(Boolean);
 
   let pendingItem = null;
@@ -460,7 +487,7 @@
   // still rides along, since it's a separate signal from the checkboxes
   function skipAddons() {
     if (pendingItem) {
-      addToCart(pendingItem.name, pendingItem.price, pendingItem.img, [], addonNoteInput.value);
+      addToCart(pendingItem.name, pendingItem.price, pendingItem.img, [], addonNoteInput.value, pendingItem.posId);
     }
     closeAddonModal();
   }
@@ -472,8 +499,9 @@
       const chosenAddons = Array.from(selectedAddons).map((i) => ({
         name: currentAddonOptions[i].name,
         price: currentAddonOptions[i].price,
+        posId: currentAddonOptions[i].posId,
       }));
-      addToCart(pendingItem.name, pendingItem.price, pendingItem.img, chosenAddons, addonNoteInput.value);
+      addToCart(pendingItem.name, pendingItem.price, pendingItem.img, chosenAddons, addonNoteInput.value, pendingItem.posId);
     }
     closeAddonModal();
   });
@@ -513,39 +541,66 @@
       : (sec && SECTION_ADDONS[sec.id]) || [];
     const offersAddons = addonDefs.length > 0 && allowedAddonNames.length > 0;
 
+    const posId = card.dataset.posId || null;
+
+    // No posId means the POS has no product for this, so an order carrying it
+    // would be refused at send time. Offering a button that leads to "not
+    // available" at checkout is worse than offering none: the guest has
+    // already decided by then. The item still reads normally on the page.
+    if (canOrder && !posId) return;
+
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'pcard__add';
     btn.setAttribute('aria-label', `Add ${name} to your order`);
     btn.innerHTML = '<svg aria-hidden="true"><use href="#i-plus" /></svg>';
     btn.addEventListener('click', () => {
-      if (offersAddons) openAddonModal({ name, price, img }, allowedAddonNames);
-      else addToCart(name, price, img);
+      // priceOf, not the `price` captured when this button was built: the live
+      // sync lands after wiring, and a stale closure would put the printed
+      // price in the cart while the POS charged the real one.
+      const p = priceOf(card, price);
+      if (offersAddons) openAddonModal({ name, price: p, img, posId }, allowedAddonNames);
+      else addToCart(name, p, img, [], '', posId);
     });
     // anchored to the photo tile itself (not the whole card) so it can
     // never end up sitting over the name/price text below it
     (photoEl || card).appendChild(btn);
   });
 
-  $$('.item').forEach((row) => {
-    if (row.closest('#addons')) return; // chosen through the drink popup, not on their own
+  /*
+   * Give a list row its add button.
+   *
+   * Split out because the live sync calls it too. A row printed with a blank
+   * "TBD" price gets no button here, but the POS may well know the price -- and
+   * an item the till can sell that the menu refuses to add is just lost orders.
+   * So the sync calls this again once a real price arrives.
+   */
+  function wireItemAdd(row) {
+    if (row.closest('#addons')) return;     // chosen through the drink popup
+    if ($('.item__add', row)) return;       // already has one
+    if (row.classList.contains('is-soldout') || row.classList.contains('is-unavailable')) return;
 
     const nameEl = $('.item__name', row);
     const priceEl = $('.item__price', row);
     if (!nameEl || !priceEl) return;
 
-    const price = parsePrice(priceEl.textContent);
-    if (Number.isNaN(price)) return; // blank/TBD price — nothing to ring up yet
+    const price = priceOf(row, parsePrice(priceEl.textContent));
+    if (!Number.isFinite(price) || price <= 0) return; // still nothing to ring up
 
     const name = cleanName(nameEl);
+    const posId = row.dataset.posId || null;
+    if (canOrder && !posId) return;   // see the note in the pcard loop above
+
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'item__add';
     btn.setAttribute('aria-label', `Add ${name} to your order`);
     btn.innerHTML = '<svg aria-hidden="true"><use href="#i-plus" /></svg>';
-    btn.addEventListener('click', () => addToCart(name, price));
+    btn.addEventListener('click', () => addToCart(name, priceOf(row, price), null, [], '', posId));
     row.appendChild(btn);
-  });
+  }
+
+  $$('.item').forEach(wireItemAdd);
 
   function openCart() {
     cartOverlay.hidden = false;
@@ -573,36 +628,74 @@
     if (e.key === 'Escape' && !cartPanel.hidden) closeCart();
   });
 
-  /* Sends the finished order to the POS. This is the one place that talks
-     to the POS — everything after it (accepting the order, printing a
-     ticket, the register, etc.) is the backend's side to build. Point
-     POS_ENDPOINT at the real integration URL when it exists. */
-  async function sendOrderToPOS(order) {
-    const res = await fetch(POS_ENDPOINT, {
+  /*
+   * Turn the cart into what the POS accepts.
+   *
+   * Product ids and quantities only. No names, no prices, no total: the POS
+   * prices every line from its own catalogue and ignores anything else, which
+   * is what stops a guest editing the total in devtools and being charged it.
+   *
+   * An add-on becomes its own line. The guest reads one cart row for
+   * "Cappuccino + Extra Shot"; the counter gets two lines that sum to the
+   * same money.
+   */
+  function collectOrderLines() {
+    const lines = [];
+    const missing = [];
+    for (const l of cart) {
+      if (!l.posId) { missing.push(l.name); continue; }
+      lines.push({ productId: l.posId, quantity: l.qty });
+      for (const a of (l.addons || [])) {
+        if (!a.posId) { missing.push(a.name); continue; }
+        // One add-on per drink, so the add-on quantity follows the drink's.
+        lines.push({ productId: a.posId, quantity: l.qty });
+      }
+    }
+    return { lines, missing };
+  }
+
+  /* Sends the finished order. Same-origin to this site's Worker, which adds
+     the shared secret and forwards to the POS — see ORDER_ENDPOINT above. */
+  async function sendOrderToPOS(payload) {
+    const res = await fetch(ORDER_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(order),
+      body: JSON.stringify(payload),
     });
-    if (!res.ok) throw new Error(`POS responded ${res.status}`);
-    return res.json().catch(() => ({}));
+    let body = null;
+    try { body = await res.json(); } catch { body = null; }
+    if (!res.ok) {
+      // The POS writes guest-readable refusals -- "product sold out", "too
+      // many orders waiting for this table". Showing its wording beats a
+      // generic failure the guest can do nothing about.
+      const err = new Error((body && body.error) || `POS responded ${res.status}`);
+      err.status = res.status;
+      err.posMessage = body && body.error;
+      throw err;
+    }
+    return body || {};
   }
 
   cartSend.addEventListener('click', async () => {
     if (cart.length === 0) return;
 
-    const order = {
-      table: TABLE_NUMBER || null,
-      items: cart.map((l) => ({
-        name: l.name,
-        price: l.price,
-        qty: l.qty,
-        ...(l.addons && l.addons.length ? { addons: l.addons } : {}),
-        ...(l.note ? { note: l.note } : {}),
-      })),
-      total: cartTotal(),
-      currency: 'IQD',
-      createdAt: new Date().toISOString(),
-    };
+    if (!canOrder) {
+      cartStatus.textContent = 'Scan the QR code on your table to order.';
+      cartStatus.className = 'cart__status cart__status--error';
+      return;
+    }
+
+    const { lines, missing } = collectOrderLines();
+    if (missing.length) {
+      // Naming them beats "something went wrong": the guest can remove the
+      // offending item and send the rest, instead of being stuck.
+      cartStatus.textContent = `Not available to order right now: ${missing.join(', ')}. Please ask your server.`;
+      cartStatus.className = 'cart__status cart__status--error';
+      return;
+    }
+    if (!lines.length) return;
+
+    const order = { t: QR_TOKEN, items: lines };
 
     cartSend.disabled = true;
     cartSendLabel.textContent = 'Placing your order…';
@@ -618,7 +711,9 @@
       renderCart();
       window.setTimeout(closeCart, 1400);
     } catch (err) {
-      cartStatus.textContent = "Couldn't place the order — try again.";
+      cartStatus.textContent = err && err.posMessage
+        ? err.posMessage
+        : "Couldn't place the order — try again.";
       cartStatus.className = 'cart__status cart__status--error';
     } finally {
       cartSend.disabled = false;
@@ -676,4 +771,124 @@
 
     deco.addEventListener('dblclick', (e) => e.preventDefault());
   }
+
+  /* ---------- live sync with the POS ----------
+   *
+   * The printed page is the design; the POS is the truth about money and
+   * availability. On load we ask the Worker for this table's live catalogue and
+   * reconcile the two:
+   *
+   *   - the table number, which only the QR token knows
+   *   - prices, so a guest is never quoted one number and charged another
+   *   - sold-out items, greyed and un-addable
+   *
+   * Keyed on data-pos-id, written into the page by scripts/map-posids.mjs.
+   * Never on names: five Cold Foam Signatures differ by a single word, and a
+   * near-miss there means the wrong drink at the counter.
+   *
+   * A failure here is quiet on purpose. The menu still reads correctly and the
+   * guest can still order at printed prices; the POS re-prices every line on
+   * arrival anyway, so the worst case is a surprise at the till rather than a
+   * blank page.
+   */
+  async function syncWithPos() {
+    if (!canOrder) return;
+
+    let data;
+    try {
+      const res = await fetch(`${MENU_ENDPOINT}?t=${encodeURIComponent(QR_TOKEN)}`, {
+        headers: { accept: 'application/json' },
+      });
+      if (!res.ok) return;
+      data = await res.json();
+    } catch {
+      return;
+    }
+    if (!data || !Array.isArray(data.products)) return;
+
+    if (data.table && data.table.number != null) {
+      TABLE_NUMBER = data.table.number;
+      cartTableNum.textContent = String(TABLE_NUMBER);
+      cartTable.hidden = false;
+    }
+
+    const live = new Map();
+    for (const p of data.products) if (p && p.id) live.set(p.id, p);
+
+    // Happy hour is the POS's call, not this page's: it knows the schedule and
+    // it is what will actually be charged.
+    const effectivePrice = (p) => {
+      if (data.happyHourActive && p.happyHourPrice != null && Number(p.happyHourPrice) < Number(p.price)) {
+        return Number(p.happyHourPrice);
+      }
+      return Number(p.price);
+    };
+
+    const applyTo = (el, priceSel) => {
+      const p = live.get(el.dataset.posId);
+      if (!p) {
+        // Tagged with an id the POS no longer has -- withdrawn item, or a
+        // mapping that has gone stale. Treat as unavailable rather than
+        // letting it fail at send time.
+        el.classList.add('is-unavailable');
+        el.querySelectorAll('.pcard__add, .item__add').forEach((b) => b.remove());
+        return;
+      }
+
+      const price = effectivePrice(p);
+      if (Number.isFinite(price) && price > 0) {
+        el.dataset.price = String(price);
+        const priceEl = el.querySelector(priceSel);
+        // The currency unit sits in its own child on cards; replacing only the
+        // leading number keeps "IQD" where the designer put it.
+        if (priceEl) {
+          const unit = priceEl.querySelector('span');
+          priceEl.textContent = fmt(price) + (unit ? ' ' : '');
+          if (unit) priceEl.appendChild(unit);
+          priceEl.classList.remove('item__price--tbd');
+        }
+      }
+
+      if (p.soldOut) {
+        el.classList.add('is-soldout');
+        el.querySelectorAll('.pcard__add, .item__add').forEach((b) => b.remove());
+      } else if (el.classList.contains('item')) {
+        // The POS supplied a price for something the printed page left as TBD.
+        // No-ops when the row already has a button.
+        wireItemAdd(el);
+      }
+    };
+
+    $$('.pcard[data-pos-id]').forEach((el) => applyTo(el, '.pcard__price'));
+    $$('.item[data-pos-id]').forEach((el) => applyTo(el, '.item__price'));
+
+    // Add-on prices are read when the modal opens, so refreshing the shared
+    // definitions is enough -- no need to rebuild anything on screen.
+    for (const a of addonDefs) {
+      const p = a.posId && live.get(a.posId);
+      if (p) a.price = effectivePrice(p);
+    }
+
+    // A cart restored from localStorage can hold yesterday's prices, or an item
+    // the cafe has since withdrawn. Re-price it against what just arrived so
+    // the total the guest approves is the total they pay.
+    let repriced = false;
+    for (const l of cart) {
+      const p = l.posId && live.get(l.posId);
+      if (p) {
+        const price = effectivePrice(p);
+        if (Number.isFinite(price) && price > 0 && price !== l.price) { l.price = price; repriced = true; }
+      }
+      for (const a of (l.addons || [])) {
+        const ap = a.posId && live.get(a.posId);
+        if (ap) {
+          const price = effectivePrice(ap);
+          if (Number.isFinite(price) && price > 0 && price !== a.price) { a.price = price; repriced = true; }
+        }
+      }
+    }
+    if (repriced) { saveCart(); renderCart(); }
+  }
+
+  syncWithPos();
 })();

@@ -2380,6 +2380,42 @@ body.cart-open {
   display: none !important;
 }
 
+/* Live POS state, applied by syncWithPos() in menu.js.
+
+   Sold out and unavailable read the same to a guest — the drink is not coming
+   — so they look the same. They are separate classes because they mean
+   different things to whoever is debugging: is-soldout is the cafe saying so,
+   is-unavailable is this page carrying an id the POS no longer has.
+
+   The add button is removed by the script rather than hidden here, so the item
+   is un-orderable even with CSS blocked. */
+.pcard.is-soldout,
+.pcard.is-unavailable,
+.item.is-soldout,
+.item.is-unavailable {
+  opacity: .45;
+  /* Not pointer-events:none on the row: the name and price must stay
+     selectable and readable to a screen reader. There is simply no button. */
+}
+
+.pcard.is-soldout .pcard__name::after,
+.item.is-soldout .item__name::after {
+  content: " · sold out";
+  font-size: .78em;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  opacity: .8;
+}
+
+/* Opened without scanning a table QR. The menu reads normally; there is
+   nothing to add things to, so the cart affordances go away rather than
+   offering an order that cannot be placed. */
+body.is-browsing .cartbar,
+body.is-browsing .pcard__add,
+body.is-browsing .item__add {
+  display: none !important;
+}
+
 @media (prefers-reduced-motion:reduce) {
   html {
     scroll-behavior: auto;
