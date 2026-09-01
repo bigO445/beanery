@@ -16,7 +16,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Oswald:wght@300;400;500;600&family=Playfair+Display:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="menu.css?v=37">
+  <link rel="stylesheet" href="menu.css?v=38">
 </head>
 
 <body>
@@ -974,6 +974,11 @@
         <h2 class="addon-modal__title">Add anything else to your drink?</h2>
         <p class="cart__head__sub" id="addonModalDrink"></p>
       </div>
+      <button class="cart__close" id="addonClose" type="button" aria-label="Cancel — don't add this drink">
+        <svg aria-hidden="true">
+          <use href="#i-x" />
+        </svg>
+      </button>
     </header>
 
     <ul class="addon-modal__list" id="addonModalList"></ul>
@@ -985,14 +990,13 @@
     </div>
 
     <footer class="addon-modal__foot">
-      <button type="button" class="addon-modal__skip" id="addonSkip">No thanks</button>
       <button type="button" class="addon-modal__add" id="addonAddBtn">
         Add<span class="addon-modal__addtotal" id="addonAddTotal"></span>
       </button>
     </footer>
   </aside>
 
-  <script src="menu.js?v=31"></script>
+  <script src="menu.js?v=32"></script>
 </body>
 
 </html>

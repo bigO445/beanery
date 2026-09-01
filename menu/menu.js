@@ -654,7 +654,7 @@
   const addonModal      = $('#addonModal');
   const addonModalList  = $('#addonModalList');
   const addonModalDrink = $('#addonModalDrink');
-  const addonSkipBtn    = $('#addonSkip');
+  const addonCloseBtn   = $('#addonClose');
   const addonAddBtn     = $('#addonAddBtn');
   const addonAddTotalEl = $('#addonAddTotal');
   const addonNoteInput  = $('#addonNoteInput');
@@ -734,16 +734,23 @@
     pendingItem = null;
   }
 
-  // "no thanks" declines the listed add-ons specifically — a typed note
-  // still rides along, since it's a separate signal from the checkboxes
-  function skipAddons() {
-    if (pendingItem) {
-      addToCart(pendingItem.name, pendingItem.price, pendingItem.img, [], addonNoteInput.value, pendingItem.posId);
-    }
+  /* Backing out of this modal adds nothing at all — not the add-ons, and not
+   * the drink underneath them.
+   *
+   * Tapping + opens a question, and a question the guest never answered is not
+   * an order. The old "no thanks" button dropped the plain drink in the cart,
+   * which meant the two dismissal gestures every modal has — the backdrop and
+   * Escape — quietly bought a coffee. A guest who taps outside to get out is
+   * saying "forget it", and finding a drink they never confirmed on the bill
+   * is the one mistake here that costs them money.
+   *
+   * Adding with nothing ticked is still one tap: that is what the Add button
+   * does when no box is checked. */
+  function cancelAddons() {
     closeAddonModal();
   }
 
-  addonSkipBtn.addEventListener('click', skipAddons);
+  addonCloseBtn.addEventListener('click', cancelAddons);
 
   addonAddBtn.addEventListener('click', () => {
     if (pendingItem) {
@@ -757,11 +764,10 @@
     closeAddonModal();
   });
 
-  // dismissing without an explicit choice still has to land on one of the
-  // two documented outcomes — treat it the same as "no thanks"
-  addonOverlay.addEventListener('click', skipAddons);
+  // the backdrop and Escape are dismissals, and a dismissal is a cancel
+  addonOverlay.addEventListener('click', cancelAddons);
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !addonModal.hidden) skipAddons();
+    if (e.key === 'Escape' && !addonModal.hidden) cancelAddons();
   });
 
   // wire an "add" button onto every priced card/item already on the page —

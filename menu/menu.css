@@ -2823,7 +2823,6 @@ body.cart-open {
   flex: 0 0 auto;
 }
 
-.addon-modal__skip,
 .addon-modal__add {
   all: unset;
   box-sizing: border-box;
@@ -2837,22 +2836,17 @@ body.cart-open {
   transition: transform .15s ease;
 }
 
-.addon-modal__skip {
-  flex: 1 1 38%;
-  border: 2.5px solid var(--line);
-  color: var(--ink-soft);
-  background: var(--bg);
-}
 
 .addon-modal__add {
-  flex: 1 1 62%;
+  /* the only button in the footer now that cancelling is the X and the
+     backdrop — nothing to share the row with */
+  flex: 1 1 auto;
   /* fixed beige + green, not swapped in dark mode — see .cardrow__arrow */
   border: 3px solid #606C38;
   background: #FEFAE0;
   color: #283618;
 }
 
-.addon-modal__skip:active,
 .addon-modal__add:active {
   transform: scale(.97);
 }
@@ -3107,10 +3101,6 @@ body.is-browsing .item__add {
 .cart__close:focus-visible,
 .cart__remove:focus-visible,
 .cart__qty button:focus-visible,
-.addon-modal__skip:focus-visible {
-  outline: 3px solid #283618;
-  outline-offset: 2px;
-}
 
 /* the two green-filled controls — dark green on green would disappear, so
    these take the cream side of the same fixed pair */
