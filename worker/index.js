@@ -23,7 +23,7 @@
  *
  * NOT AN OPEN PROXY
  *
- * Three exact routes are forwarded and nothing else. There is deliberately no
+ * Four exact routes are forwarded and nothing else. There is deliberately no
  * "forward whatever path came in" branch: that would turn this Worker into a
  * public front door for every authenticated route on the POS, with the secret
  * helpfully attached.
@@ -208,6 +208,18 @@ export default {
       const t = url.searchParams.get('t') || '';
       if (!QR_TOKEN.test(t)) return json({ error: 'not found' }, 404);
       return relay(upstream(env, '/api/public/menu?qrToken=' + t, { clientIp }));
+    }
+
+    // ── GET /api/table?t=<qrToken> ────────────────────────────────────────
+    // Everything on this table right now, however it got there: what the guest
+    // scanned AND what the cashier rang in at the counter. A guest who orders
+    // a latte on their phone and then asks for a bottle of water at the till
+    // otherwise sees only the latte, and "order again" works from half the
+    // picture. The POS decides what is safe to show; this only forwards it.
+    if (pathname === '/api/table' && request.method === 'GET') {
+      const t = url.searchParams.get('t') || '';
+      if (!QR_TOKEN.test(t)) return json({ error: 'not found' }, 404);
+      return relay(upstream(env, '/api/public/table?qrToken=' + t, { clientIp }));
     }
 
     // ── POST /api/order ───────────────────────────────────────────────────
