@@ -906,6 +906,9 @@
   function collectOrderLines() {
     const lines = [];
     const missing = [];
+    // Counts only the drinks that actually carry add-ons, so an order of
+    // plain coffees sends no grouping fields at all.
+    let group = 0;
     for (const l of cart) {
       if (!l.posId) { missing.push(l.name); continue; }
       const line = { productId: l.posId, quantity: l.qty };
@@ -921,11 +924,38 @@
        * it on the add-on lines too would print the same sentence twice on one
        * ticket. */
       if (l.note) line.notes = l.note;
-      lines.push(line);
+
+      const addons = [];
       for (const a of (l.addons || [])) {
         if (!a.posId) { missing.push(a.name); continue; }
+        addons.push(a);
+      }
+
+      /* Tie a drink's add-ons back to the drink.
+       *
+       * They stay separate lines -- each one is a real product that has to be
+       * sold, reported and taken off the shelf. But as peers of the drink they
+       * arrived at the till unattached: a table ordering two lattes with
+       * different syrups gave the cashier five flat rows and no way to tell
+       * which syrup went in which cup, and a note printed under a drink that
+       * might not be the one it was typed for.
+       *
+       * The token is meaningless outside this one order. The POS resolves it
+       * to a real parent line id the moment the order lands and never stores
+       * the token itself, so nothing downstream has to know this numbering
+       * scheme -- see qrOrdering in the POS's lib/qr-ordering.js. */
+      const token = addons.length ? 'g' + (++group) : '';
+      if (token) line.lineGroup = token;
+      lines.push(line);
+
+      for (const a of addons) {
         // One add-on per drink, so the add-on quantity follows the drink's.
-        lines.push({ productId: a.posId, quantity: l.qty });
+        const child = { productId: a.posId, quantity: l.qty };
+        if (token) {
+          child.lineGroup = token;
+          child.lineRole = 'addon';
+        }
+        lines.push(child);
       }
     }
     return { lines, missing };

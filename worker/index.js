@@ -47,6 +47,11 @@ const MAX_ORDER_BYTES = 64 * 1024;
 // A publicId is 16 random bytes hex-encoded (newPublicId).
 const PUBLIC_ID = /^[a-f0-9]{32}$/;
 
+// The per-order token that ties an add-on line to its drink. The menu emits
+// "g1", "g2", ...; the bound is generous enough that a different scheme would
+// still pass, and tight enough that this can never carry a payload.
+const LINE_GROUP = /^[A-Za-z0-9_-]{1,16}$/;
+
 /*
  * The two config values, cleaned before use.
  *
@@ -206,7 +211,8 @@ export default {
     }
 
     // ── POST /api/order ───────────────────────────────────────────────────
-    // Body: { t, items: [{ productId, quantity, modifiers?, notes? }], phone? }
+    // Body: { t, items: [{ productId, quantity, modifiers?, notes?,
+    //                      lineGroup?, lineRole? }], phone? }
     //
     // The token is rewritten into the field name the POS expects rather than
     // having the menu know that name. Prices are NOT sent and would be ignored
@@ -252,6 +258,21 @@ export default {
           // order and the kitchen never saw.
           if (typeof (line && line.notes) === 'string' && line.notes.trim()) {
             out.notes = line.notes.trim().slice(0, 500);
+          }
+          // Which drink an add-on belongs to. Named here for the same reason
+          // as notes: the menu can send it all it likes, but an allow-list
+          // drops what it does not list, and a dropped group is a cashier
+          // guessing which cup the syrup went in.
+          //
+          // Shape-checked rather than passed through. The token is a short
+          // opaque label the POS turns into a real parent line id, so nothing
+          // needs to be readable in it — refusing anything longer or stranger
+          // than that costs a regex and keeps arbitrary guest-supplied strings
+          // out of a field the till will group rows by.
+          if (typeof (line && line.lineGroup) === 'string' && LINE_GROUP.test(line.lineGroup)) {
+            out.lineGroup = line.lineGroup;
+            // A role without a group is meaningless, so it only travels with one.
+            if (line.lineRole === 'addon') out.lineRole = 'addon';
           }
           return out;
         }),
