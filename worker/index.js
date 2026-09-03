@@ -112,6 +112,10 @@ function upstream(env, path, init = {}) {
   const ip = init.clientIp;
   if (ip) headers['CF-Connecting-IP'] = ip;
   if (init.body !== undefined) headers['content-type'] = 'application/json';
+  // Passed on so an unchanged table can answer 304 with no body. This is the
+  // one inbound header worth forwarding: it carries no identity, only "here is
+  // the version I already have".
+  if (init.ifNoneMatch) headers['if-none-match'] = init.ifNoneMatch;
 
   return fetch(posOrigin(env) + path, {
     method: init.method || 'GET',
@@ -120,8 +124,37 @@ function upstream(env, path, init = {}) {
     // The POS answers from its own database in single-digit milliseconds; a
     // request still open after 10s is a POS that is down, and a guest staring
     // at a spinner should be told so rather than waiting out a default.
-    signal: AbortSignal.timeout(10_000),
+    //
+    // Except when we asked it to wait. A long poll on /api/table is meant to
+    // hang until the table changes, so the ceiling has to clear the wait the
+    // POS was given -- otherwise the Worker aborts its own request at 10s and
+    // reports a healthy POS as down. See timeoutFor().
+    signal: AbortSignal.timeout(init.timeoutMs || 10_000),
   });
+}
+
+/*
+ * How long to allow upstream, given a long-poll wait.
+ *
+ * The POS caps ?wait at 25s. Five seconds of headroom covers the round trip
+ * and the POS's own 700ms polling granularity, so a poll that runs its full
+ * course comes back as an ordinary answer rather than as a timeout.
+ */
+function timeoutFor(waitSec) {
+  return waitSec > 0 ? (waitSec + 5) * 1000 : 10_000;
+}
+
+/*
+ * The guest's requested long-poll wait, sanitised.
+ *
+ * Clamped here as well as in the POS, because the Worker is what actually
+ * holds the connection open: a hostile ?wait=99999 should not be able to park
+ * a Worker invocation for longer than the POS would ever hold it anyway.
+ */
+function waitParam(url) {
+  const raw = parseInt(url.searchParams.get('wait'), 10);
+  if (!Number.isFinite(raw) || raw <= 0) return 0;
+  return Math.min(25, raw);
 }
 
 /*
@@ -147,6 +180,22 @@ async function relay(promise) {
     );
   }
 
+  /*
+   * 304 is an answer, not an empty body.
+   *
+   * "Nothing changed since the version you have" is exactly what a polling
+   * menu wants to hear, and it is the thing that makes polling cheap. A 304
+   * must carry no body, so it cannot go through the JSON path below --
+   * re-serialising it as `{}` would both be invalid and throw away the ETag
+   * the guest needs in order to ask the same question again.
+   */
+  if (res.status === 304) {
+    const headers = { 'cache-control': 'no-cache' };
+    const etag = res.headers.get('etag');
+    if (etag) headers.etag = etag;
+    return new Response(null, { status: 304, headers });
+  }
+
   const text = await res.text();
   let body;
   try {
@@ -156,7 +205,21 @@ async function relay(promise) {
     // say. Passing it through would leak whatever it says about the origin.
     return json({ error: 'Service unavailable.' }, 502);
   }
-  return json(body, res.status);
+
+  /*
+   * The ETag has to survive the round trip, or the guest can never send
+   * If-None-Match and every poll costs a full body. It is a hash of the
+   * response the guest is already holding, so it discloses nothing the guest
+   * does not have -- and Cache-Control keeps the browser revalidating rather
+   * than serving a bill from its own cache.
+   */
+  const res2 = json(body, res.status);
+  const etag = res.headers.get('etag');
+  if (etag) {
+    res2.headers.set('etag', etag);
+    res2.headers.set('cache-control', 'no-cache');
+  }
+  return res2;
 }
 
 export default {
@@ -216,10 +279,23 @@ export default {
     // a latte on their phone and then asks for a bottle of water at the till
     // otherwise sees only the latte, and "order again" works from half the
     // picture. The POS decides what is safe to show; this only forwards it.
+    //
+    // ?wait=<seconds> long-polls: the POS holds the request open until the
+    // table actually changes, then answers. The cashier's bottle of water
+    // reaches the phone in well under a second instead of on the next tick,
+    // and the phone makes a couple of requests a minute instead of twenty.
+    // Omit it and the route answers immediately, as it always did.
     if (pathname === '/api/table' && request.method === 'GET') {
       const t = url.searchParams.get('t') || '';
       if (!QR_TOKEN.test(t)) return json({ error: 'not found' }, 404);
-      return relay(upstream(env, '/api/public/table?qrToken=' + t, { clientIp }));
+      const wait = waitParam(url);
+      return relay(
+        upstream(env, '/api/public/table?qrToken=' + t + (wait ? '&wait=' + wait : ''), {
+          clientIp,
+          timeoutMs: timeoutFor(wait),
+          ifNoneMatch: request.headers.get('if-none-match'),
+        })
+      );
     }
 
     // ── POST /api/order ───────────────────────────────────────────────────
