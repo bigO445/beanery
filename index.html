@@ -21,9 +21,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" as="image" href="images/hero-3-trim.webp" type="image/webp" fetchpriority="high">
+  <!-- Sacramento carries the gold marginalia ("More than coffee", "Good people,
+     great coffee"). It is a real webfont rather than lettering exported as
+     images: it stays crisp at any size, the words stay editable, and it costs
+     one subsetted file instead of six PNGs. -->
   <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,800&family=Manrope:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700&display=swap">
-  <link rel="stylesheet" href="styles.css?v=4">
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,800&family=Manrope:wght@400;500;600;700;800&family=Sacramento&family=Tajawal:wght@400;500;700&display=swap">
+  <link rel="stylesheet" href="styles.css?v=5">
 
   <!-- Runs during parse. Reveal animations are scoped to .js, so with
      JavaScript off every element is simply visible rather than stuck
@@ -160,6 +164,62 @@
                H5.95 Z" />
       </symbol>
 
+      <!-- The wave the green band is cut to.
+
+         clipPathUnits="objectBoundingBox" means the path is in 0–1 space
+         and scales with whatever it clips, so one definition serves every
+         breakpoint without a media query. The trade is that the wave
+         stretches with the element rather than holding a fixed amplitude
+         — acceptable for a decorative edge, and it keeps the noise
+         texture flowing unbroken through the whole shape, which separate
+         SVG "caps" above and below the band would have cut in three.
+
+         It clips .dollar-ground, NOT .dollar. The leaves are meant to
+         straddle the edge — green behind them at the top, cream below —
+         so they sit outside the clipped layer. -->
+      <!-- The pale washes are cut to these, not to border-radius.
+
+         A CSS blob is a four-corner superellipse: at any real size it
+         relaxes back into an ellipse, and four ellipses down a page read
+         as four separate bubbles rather than as one sheet of colour.
+         These are long horizontal bands with undulating edges — the same
+         shape language as #wave-band above — so at 130vw wide they sweep
+         across the page instead of sitting on it.
+
+         Two of them, alternating, so consecutive sweeps do not rhyme. -->
+      <clipPath id="wave-soft" clipPathUnits="objectBoundingBox">
+        <path d="M0,0.28
+                 C0.15,0.02 0.31,0.36 0.47,0.20
+                 C0.63,0.04 0.79,0.30 0.90,0.16
+                 C0.95,0.09 0.98,0.12 1,0.05
+                 L1,0.80
+                 C0.86,0.98 0.70,0.72 0.54,0.90
+                 C0.38,1.06 0.22,0.80 0.10,0.94
+                 C0.05,0.99 0.02,0.96 0,1 Z" />
+      </clipPath>
+
+      <clipPath id="wave-soft-b" clipPathUnits="objectBoundingBox">
+        <path d="M0,0.10
+                 C0.13,0.30 0.28,0.02 0.44,0.18
+                 C0.60,0.34 0.76,0.06 0.88,0.22
+                 C0.94,0.30 0.97,0.24 1,0.30
+                 L1,0.94
+                 C0.88,0.74 0.72,1.02 0.56,0.86
+                 C0.40,0.70 0.24,0.98 0.12,0.82
+                 C0.06,0.74 0.03,0.80 0,0.72 Z" />
+      </clipPath>
+
+      <clipPath id="wave-band" clipPathUnits="objectBoundingBox">
+        <path d="M0,0.070
+                 C0.14,0.008 0.29,0.086 0.44,0.050
+                 C0.60,0.011 0.75,0.070 0.87,0.038
+                 C0.93,0.022 0.97,0.030 1,0.014
+                 L1,0.947
+                 C0.87,0.994 0.72,0.923 0.57,0.966
+                 C0.42,1.007 0.25,0.936 0.12,0.972
+                 C0.07,0.986 0.03,0.981 0,0.962 Z" />
+      </clipPath>
+
     </defs>
   </svg>
 
@@ -216,6 +276,33 @@
         <use href="#i-spark" />
       </svg>
       <span class="blob blob-hero" aria-hidden="true"></span>
+
+      <!-- Two flat pale-green fields sweeping behind the type. These are the
+         brand colour used as a colour field — the thing that stops the hero
+         reading as text on bare paper — and they sit at the very back so
+         nothing they touch loses contrast. -->
+      <span class="field field--hero-a" aria-hidden="true"></span>
+      <span class="field field--hero-b" aria-hidden="true"></span>
+
+      <!-- Above the fold, so no loading="lazy" — but fetchpriority="low" keeps
+         them out of the hero photograph's way, which is the LCP element. -->
+      <img class="leaf leaf--hero-1" src="images/leaf-sprig-b.webp" width="334" height="308" alt=""
+        aria-hidden="true" fetchpriority="low" decoding="async">
+      <img class="leaf leaf--hero-2" src="images/leaf-broad-tall.webp" width="251" height="355" alt=""
+        aria-hidden="true" fetchpriority="low" decoding="async">
+      <img class="leaf leaf--hero-3" src="images/leaf-pair.webp" width="254" height="315" alt=""
+        aria-hidden="true" fetchpriority="low" decoding="async">
+      <img class="leaf leaf--hero-4" src="images/leaf-curl-a.webp" width="207" height="328" alt=""
+        aria-hidden="true" fetchpriority="low" decoding="async">
+      <img class="leaf leaf--hero-5" src="images/leaf-small.webp" width="244" height="116" alt=""
+        aria-hidden="true" fetchpriority="low" decoding="async">
+
+      <p class="script script--hero" aria-hidden="true">More than<br>coffee</p>
+
+      <!-- Set sideways in the right margin, the way the mockup runs it. It is
+         the footer's line, repeated as marginalia, so it is hidden from the
+         accessibility tree rather than read out mid-hero. -->
+      <p class="vert vert--hero" aria-hidden="true">People drink good days</p>
 
       <!-- The headline sits BESIDE the photograph; everything that
          supports it sits UNDERNEATH both. Splitting the old single
@@ -358,6 +445,16 @@
       <svg class="deco deco-drops-a" aria-hidden="true" focusable="false">
         <use href="#i-drops" />
       </svg>
+
+      <span class="field field--flow-a" aria-hidden="true"></span>
+      <span class="field field--flow-b" aria-hidden="true"></span>
+
+      <img class="leaf leaf--counter-1" src="images/leaf-curl-b.webp" width="191" height="354" alt=""
+        aria-hidden="true" loading="lazy" decoding="async">
+      <img class="leaf leaf--counter-2" src="images/leaf-bright-curve.webp" width="336" height="322" alt=""
+        aria-hidden="true" loading="lazy" decoding="async">
+      <img class="leaf leaf--counter-3" src="images/leaf-drops-a.webp" width="236" height="312" alt=""
+        aria-hidden="true" loading="lazy" decoding="async">
       <svg class="deco deco-swirl-a" aria-hidden="true" focusable="false">
         <use href="#i-swirl" />
       </svg>
@@ -371,11 +468,37 @@
           <p class="lede reveal">
             Seven of forty&#8209;six. The rest hang on the board — open it any time.
           </p>
-          <!-- No arrows here. They live on the deck itself (#spinPrev /
-               #spinNext, either side of .stage) where they are next to
-               the thing they move. An earlier pair up here were left
-               over from the horizontal rail this deck replaced and were
-               wired to nothing. -->
+
+          <!-- The arrows DID live either side of .stage. They are back up
+               here because the deck is now a three-card row and the outer
+               two cards need that space — and because this is where the
+               reference layout puts them.
+
+               These are the same buttons, moved, not new ones: script.js
+               binds them by id (getElementById("spinPrev"/"spinNext")),
+               not by position, so the wiring survives the move. The
+               earlier pair that sat here were a different thing — leftovers
+               from a horizontal rail, wired to nothing. Keep the ids. -->
+          <div class="deckctl">
+            <p class="deckctl__hint">
+              <svg class="deckctl__arrow" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                <path d="M15 5l-7 7 7 7" />
+              </svg>
+              Swipe to explore
+            </p>
+            <div class="deckctl__btns">
+              <button class="deckbtn deckbtn--prev" type="button" id="spinPrev" aria-label="Previous drink">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M15 5l-7 7 7 7" />
+                </svg>
+              </button>
+              <button class="deckbtn deckbtn--next" type="button" id="spinNext" aria-label="Next drink">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -394,18 +517,12 @@
          drinks are still readable.
          ═══════════════════════════════════════════════════════════ -->
       <div class="stage">
-        <button class="deckbtn deckbtn--prev" type="button" id="spinPrev" aria-label="Previous drink">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M15 5l-7 7 7 7" />
-          </svg>
-        </button>
-
         <div class="deck" id="deck" data-start="2">
 
           <article class="dcard" style="--tint:#F3EADC;--tint-2:#E7DAC4" data-cat="coffee">
             <span class="dcard__tag">Iced coffee</span>
             <figure class="dcard__shot">
-                <img src="images/amricano.webp" width="243" height="339" loading="lazy" decoding="async"
+                <img src="images/amricano.webp" width="300" height="380" loading="lazy" decoding="async"
                   alt="Iced americano in a clear Beanery cup, dark coffee over ice.">
             </figure>
             <div class="dcard__body">
@@ -414,13 +531,16 @@
             </div>
             <div class="dcard__foot">
               <p class="dcard__price">4,000<i>IQD</i></p>
+              <a class="dcard__go" href="menu/#iced" aria-label="Iced Americano on the full menu">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7" /></svg>
+              </a>
             </div>
           </article>
 
           <article class="dcard" style="--tint:#F6E7D2;--tint-2:#EED8B6" data-cat="coffee">
             <span class="dcard__tag">Frappé</span>
             <figure class="dcard__shot">
-                <img src="images/frappe.webp" width="212" height="379" loading="lazy" decoding="async"
+                <img src="images/frappe.webp" width="300" height="380" loading="lazy" decoding="async"
                   alt="Caramel frappé in a Beanery cup, topped with cream and chocolate sauce.">
             </figure>
             <div class="dcard__body">
@@ -429,6 +549,9 @@
             </div>
             <div class="dcard__foot">
               <p class="dcard__price">5,000<i>IQD</i></p>
+              <a class="dcard__go" href="menu/#frappe" aria-label="Caramel Frappé on the full menu">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7" /></svg>
+              </a>
             </div>
           </article>
 
@@ -437,7 +560,7 @@
           <article class="dcard dcard--green" data-cat="signature">
             <span class="dcard__tag dcard__tag--gold">Signature</span>
             <figure class="dcard__shot">
-                <img src="images/saffron-cold-foam.webp" width="437" height="576" loading="lazy" decoding="async"
+                <img src="images/saffron-cold-foam.webp" width="300" height="380" loading="lazy" decoding="async"
                   alt="Cold foam saffron milk in a clear Beanery cup, saffron threads across the pale gold foam.">
             </figure>
             <div class="dcard__body">
@@ -446,13 +569,16 @@
             </div>
             <div class="dcard__foot">
               <p class="dcard__price">6,000<i>IQD</i></p>
+              <a class="dcard__go" href="menu/#signature" aria-label="Cold Foam Saffron Milk on the full menu">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7" /></svg>
+              </a>
             </div>
           </article>
 
           <article class="dcard" style="--tint:#E6EFDD;--tint-2:#D2E3C4" data-cat="matcha noncoffee">
             <span class="dcard__tag">Matcha</span>
             <figure class="dcard__shot">
-                <img src="images/matcha.webp" width="233" height="325" loading="lazy" decoding="async"
+                <img src="images/matcha.webp" width="300" height="380" loading="lazy" decoding="async"
                   alt="Iced matcha in a clear Beanery cup, bright green over ice.">
             </figure>
             <div class="dcard__body">
@@ -461,13 +587,16 @@
             </div>
             <div class="dcard__foot">
               <p class="dcard__price">6,000<i>IQD</i></p>
+              <a class="dcard__go" href="menu/#matcha" aria-label="Iced Matcha on the full menu">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7" /></svg>
+              </a>
             </div>
           </article>
 
           <article class="dcard" style="--tint:#EDE6F6;--tint-2:#DDD2EE" data-cat="signature matcha noncoffee">
             <span class="dcard__tag dcard__tag--purple">Non&#8209;coffee</span>
             <figure class="dcard__shot">
-                <img src="images/ube-matcha.webp" width="439" height="576" loading="lazy" decoding="async"
+                <img src="images/ube-matcha.webp" width="300" height="380" loading="lazy" decoding="async"
                   alt="Ube matcha in a clear Beanery cup, green matcha layered over purple ube.">
             </figure>
             <div class="dcard__body">
@@ -476,16 +605,14 @@
             </div>
             <div class="dcard__foot">
               <p class="dcard__price">6,000<i>IQD</i></p>
+              <a class="dcard__go" href="menu/#signature" aria-label="Ube Matcha on the full menu">
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M9 5l7 7-7 7" /></svg>
+              </a>
             </div>
           </article>
 
         </div>
 
-        <button class="deckbtn deckbtn--next" type="button" id="spinNext" aria-label="Next drink">
-          <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-            <path d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
       </div>
 
       <div class="dots" id="dots" aria-hidden="true"></div>
@@ -517,6 +644,23 @@
        announced term by term is not a sentence.
        ═══════════════════════════════════════════════════════════ -->
     <section class="dollar" id="dollar">
+      <!-- The green is a LAYER inside the section, not the section's own
+         background, so the wave can be cut into it while the leaves above
+         stay unclipped and hang over the edge onto the cream. -->
+      <div class="dollar-ground" aria-hidden="true"></div>
+
+      <!-- The monogram, large, sitting in the band's left margin.
+
+         #i-logo, not #i-logo-solid: this is the real monoline mark with
+         the leaf inside it, and at this size the strokes are what make
+         it read as the logo rather than as a letter B. Weight is set in
+         viewBox units on the instance (see .wmark), the same way
+         .brand-logo does it in the header — so the header mark at 17px
+         and this one at ~215px are the identical drawing. -->
+      <svg class="wmark wmark--dollar" aria-hidden="true" focusable="false">
+        <use href="#i-logo" />
+      </svg>
+
       <svg class="blobfill blob-dollar" aria-hidden="true" focusable="false">
         <use href="#i-blob" />
       </svg>
@@ -526,6 +670,20 @@
       <svg class="deco deco-spark-d" aria-hidden="true" focusable="false">
         <use href="#i-spark" />
       </svg>
+
+      <img class="leaf leaf--dollar-1" src="images/leaf-broad-dark.webp" width="289" height="344" alt=""
+        aria-hidden="true" loading="lazy" decoding="async">
+      <img class="leaf leaf--dollar-2" src="images/leaf-sprig-a.webp" width="342" height="329" alt=""
+        aria-hidden="true" loading="lazy" decoding="async">
+      <img class="leaf leaf--dollar-3" src="images/leaf-broad-drops.webp" width="300" height="344" alt=""
+        aria-hidden="true" loading="lazy" decoding="async">
+      <img class="leaf leaf--dollar-4" src="images/leaf-point-mid.webp" width="270" height="327" alt=""
+        aria-hidden="true" loading="lazy" decoding="async">
+      <img class="leaf leaf--dollar-5" src="images/leaf-drops-b.webp" width="359" height="191" alt=""
+        aria-hidden="true" loading="lazy" decoding="async">
+
+      <p class="script script--dollar-a" aria-hidden="true">Same good coffee,<br>always</p>
+      <p class="script script--dollar-b" aria-hidden="true">Good people,<br>great coffee</p>
 
       <div class="wrap dollar-in">
         <div class="dollar-type">
@@ -586,6 +744,16 @@
         <use href="#i-wave" />
       </svg>
 
+      <span class="field field--flow-c" aria-hidden="true"></span>
+
+      <img class="leaf leaf--board-1" src="images/leaf-slim-dark.webp" width="311" height="206" alt=""
+        aria-hidden="true" loading="lazy" decoding="async">
+      <img class="leaf leaf--board-2" src="images/leaf-curl-c.webp" width="121" height="339" alt=""
+        aria-hidden="true" loading="lazy" decoding="async">
+
+      <p class="script script--board-a" aria-hidden="true">Drinks, desserts,<br>good days</p>
+      <p class="script script--board-b" aria-hidden="true">Same good taste,<br>new days</p>
+
       <div class="wrap">
         <div class="board-head">
           <div>
@@ -644,13 +812,19 @@
        light, and a dark band here cut the page in half right where it
        should be opening out.
 
-       ⚠ THE MAP PIN IS NOT BEANERY. The embed supplied points at
-       "Abu-Ghazaleh Intellectual Property (AGIP)" in Erbil. It is in
-       the right city and it renders, but it is somebody else's
-       building — swap the `pb=` payload for Beanery's own place before
-       this goes live, or the map will confidently send people to the
-       wrong door. The street address below is still a TODO for the
-       same reason: it is marked, not invented.
+       THE MAP PIN: resolved. This carried a warning that the embed
+       pointed at "Abu-Ghazaleh Intellectual Property (AGIP)" — someone
+       else's building in the right city. The `pb=` payload now reads
+       `!2sThe Beanery Cafe` at 36.2381, 44.0100, which is Ankawa, so
+       the embed was swapped at some point and the warning outlived it.
+
+       THE ADDRESS: also resolved. Given by the owner on 2026-09-05 as
+       Four Towers, Ankawa — so it is recorded, not invented, which was
+       the whole point of the placeholder that used to sit here.
+
+       No phone number is published. There was a marked placeholder for
+       one; the owner asked for it to come off rather than be filled in.
+       Do not re-add a number without being given one.
        ═══════════════════════════════════════════════════════════ -->
     <section class="visit" id="visit">
       <svg class="blobfill blob-visit" aria-hidden="true" focusable="false">
@@ -662,6 +836,17 @@
       <svg class="deco deco-swirl-b" aria-hidden="true" focusable="false">
         <use href="#i-swirl" />
       </svg>
+
+      <span class="field field--flow-d" aria-hidden="true"></span>
+
+      <img class="leaf leaf--visit-1" src="images/leaf-sprig-a.webp" width="342" height="329" alt=""
+        aria-hidden="true" loading="lazy" decoding="async">
+      <img class="leaf leaf--visit-2" src="images/leaf-broad-drops.webp" width="300" height="344" alt=""
+        aria-hidden="true" loading="lazy" decoding="async">
+      <img class="leaf leaf--visit-3" src="images/leaf-point-mid.webp" width="270" height="327" alt=""
+        aria-hidden="true" loading="lazy" decoding="async">
+
+      <p class="script script--visit" aria-hidden="true">Good space,<br>good people</p>
 
       <div class="wrap visit-in">
 
@@ -686,7 +871,7 @@
           <p class="visit-name">Beanery Cafe</p>
           <p class="visit-name-ar" lang="ar" dir="rtl">بينيري كافيه</p>
           <p class="visit-addr">
-            <span class="todo">Add the street address</span><br>
+            Four Towers<br>
             Ankawa, Erbil, Iraq
           </p>
 
@@ -697,12 +882,12 @@
 
           <dl class="facts">
             <div class="fact">
-              <dt>Phone</dt>
-              <dd><span class="todo">Add the number</span></dd>
-            </div>
-            <div class="fact">
               <dt>Instagram</dt>
-              <dd><a href="https://instagram.com/beanery">@beanery</a></dd>
+              <!-- The real account, given by the owner 2026-09-05. Both the
+                 href AND the visible handle were wrong before: @beanery is
+                 somebody else's account, so the old link did not merely 404,
+                 it pointed at a stranger. -->
+              <dd><a href="https://www.instagram.com/the.beanerycafeerbil/">@the.beanerycafeerbil</a></dd>
             </div>
             <div class="fact">
               <dt>Wifi</dt>
@@ -711,7 +896,13 @@
           </dl>
 
           <p class="visit-cta">
-            <a class="btn btn-solid" href="https://maps.google.com/?q=Ankawa,+Erbil,+Iraq">
+            <!-- Searches for the café by name AND the address now that we
+               have one. The old link was ?q=Ankawa,+Erbil,+Iraq, which
+               dropped people on the centre of the district rather than at
+               the door — fine while the address was unknown, wrong now
+               that the panel above states Four Towers. -->
+            <a class="btn btn-solid"
+              href="https://www.google.com/maps/search/?api=1&amp;query=The+Beanery+Cafe%2C+Four+Towers%2C+Ankawa%2C+Erbil">
               Get directions
               <span class="btn-arrow" aria-hidden="true">
                 <svg viewBox="0 0 24 24">
@@ -754,7 +945,7 @@
           <h2>Visit</h2>
           <a href="#visit">Find us</a>
           <a href="#visit">Hours</a>
-          <a href="https://instagram.com/beanery">Instagram</a>
+          <a href="https://www.instagram.com/the.beanerycafeerbil/">Instagram</a>
         </div>
       </nav>
     </div>

@@ -28,3 +28,6 @@ dist/
 
 # wrangler local state
 .wrangler/
+
+# Source art sheets — context only, never served
+_assets-in/

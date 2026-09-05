@@ -1458,7 +1458,13 @@ h2.on-green, h2.on-dark { color: var(--cream); }
 
 /* Real placeholder, marked as one. Better than an invented address.
    Gold-on-charcoal — the gold ground needs dark ink on cream now that
-   the section is light. */
+   the section is light.
+
+   NOTHING USES THIS RIGHT NOW (2026-09-05): the street address was
+   supplied and the phone placeholder was removed at the owner's
+   request, so both instances are gone. Kept because it is the
+   convention this page uses for unknown facts — mark them, never
+   invent them — and the next one should look the same. */
 .todo {
   display: inline-block;
   font-size: .78rem;
@@ -2061,3 +2067,1059 @@ h2.on-green, h2.on-dark { color: var(--cream); }
 @media (max-width: 760px) {
   .deco-bean-e, .deco-spark-d { display: none; }
 }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   FOLIAGE RESTYLE — 2026-09-05
+
+   Layered on top of the sheet above rather than cut into it, so the
+   original design survives underneath: delete this block and the page
+   returns to what it was.
+
+   Three new things carry the look:
+
+     .field   flat pale-green colour fields behind the type
+     .leaf    photographic leaf cutouts in the margins
+     .script  gold handwriting, set in Sacramento
+
+   The rule that governs all three: DECORATION NEVER TOUCHES READING.
+   Every one of them is aria-hidden, pointer-events:none, and sits at a
+   z-index below the content layer, which the sheet above already pins
+   to z-index 1. Nothing here may reduce the contrast of a word.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Pale steps of the brand green, for colour fields only — they are
+     grounds, never type colours. Cream text on either of these would
+     be illegible, so nothing is ever set on top of them directly. */
+  --green-pale:  #DEE8D2;
+  --green-pale-2:#CBDCBC;
+
+  --script: "Sacramento", "Segoe Script", "Brush Script MT", cursive;
+}
+
+
+/* ── Colour fields ──────────────────────────────────────────────────
+   The mockup's soft green sweeps. Same lobed radii the .blob shapes
+   already use, so they read as one family. Sized in vw so they scale
+   with the viewport rather than the section's content height. */
+
+.field {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  user-select: none;
+  border-radius: 58% 42% 47% 53% / 44% 56% 44% 56%;
+  background: var(--green-pale);
+}
+
+.field--hero-a {
+  width: 86vw;
+  height: 44vw;
+  left: -26vw;
+  top: -16vw;
+  opacity: .75;
+}
+
+.field--hero-b {
+  width: 54vw;
+  height: 30vw;
+  right: -18vw;
+  top: 20vw;
+  background: var(--green-pale-2);
+  opacity: .5;
+  border-radius: 46% 54% 62% 38% / 55% 42% 58% 45%;
+}
+
+
+/* ── Leaves ─────────────────────────────────────────────────────────
+   Cut out of the supplied sheet (16 on one transparent PNG) by
+   connected-component labelling on the alpha channel, each masked to
+   its own component so a neighbour overlapping the bounding box does
+   not ride along. The monstera on that sheet was dropped: wrong plant,
+   and the one silhouette that would have read as houseplant rather
+   than coffee.
+
+   The drop shadow is CSS rather than baked into the files, because the
+   same leaf is used on cream and on deep green and a baked shadow only
+   suits one of them. */
+
+.leaf {
+  position: absolute;
+  z-index: 0;
+  display: block;
+  height: auto;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(0 16px 20px rgba(24, 54, 28, .18));
+}
+
+
+/* ── Gold handwriting ───────────────────────────────────────────────
+   Real text in a real webfont, not lettering exported as pictures.
+
+   aria-hidden on purpose: every one of these repeats a line the page
+   already says out loud somewhere else, and read in DOM order they
+   would interrupt the sentence they are pinned beside. They are
+   marginalia, so they are hidden from the accessibility tree the same
+   way .deco is.
+
+   Colour is the two tokens that were measured: --gold-ink on cream
+   (5.3:1), --gold-soft on --green-deep (4.8:1). Never the raw --gold,
+   which fails on both. */
+
+.script {
+  position: absolute;
+  z-index: 1;
+  margin: 0;
+  font-family: var(--script);
+  font-weight: 400;
+  font-size: clamp(1.3rem, 2vw, 1.95rem);
+  line-height: 1.02;
+  color: var(--gold-ink);
+  pointer-events: none;
+  user-select: none;
+}
+
+.script--dollar-a,
+.script--dollar-b { color: var(--gold-soft); }
+
+
+/* Sideways in the right margin of the hero. writing-mode does the
+   rotation, which keeps it as selectable, translatable text rather
+   than a transformed block. */
+.vert {
+  position: absolute;
+  z-index: 1;
+  margin: 0;
+  writing-mode: vertical-rl;
+  font-family: var(--text);
+  font-size: .66rem;
+  font-weight: 600;
+  letter-spacing: .24em;
+  text-transform: uppercase;
+  color: var(--muted);
+  pointer-events: none;
+  user-select: none;
+}
+
+
+/* ── Leaf sizes ─────────────────────────────────────────────────────
+   Three steps, all fluid. The source leaves are ~250–360px on the long
+   edge, so --leaf-lg is capped at 235px: pushed past its native size a
+   photographic cutout goes soft, and soft foliage reads as a cheap
+   stock asset rather than as art direction. If bigger leaves are ever
+   wanted in the hero, they need re-rendering at ~2000px, not upscaling. */
+:root {
+  --leaf-lg: clamp(132px, 15vw, 235px);
+  --leaf-md: clamp(100px, 11vw, 178px);
+  --leaf-sm: clamp(72px,  8.5vw, 126px);
+}
+
+
+/* ── Hero placements ────────────────────────────────────────────────
+   Every one of these sits in a margin or over the photograph. None of
+   them passes behind running text: the content column is 1200px inside
+   a 1440px page, which leaves only ~8% of margin each side, so the
+   leaves that come inward do it in the VERTICAL gaps — above the
+   eyebrow, below the buttons — rather than beside the words. */
+
+.leaf--hero-1 { width: var(--leaf-lg); right: 1%;    top: -3%;  transform: rotate(-14deg); }
+.leaf--hero-2 { width: var(--leaf-md); left: -5%;    top: -6%;  transform: rotate(28deg); }
+.leaf--hero-3 { width: var(--leaf-md); right: 3%;    top: 44%;  transform: rotate(-32deg); }
+.leaf--hero-4 { width: var(--leaf-sm); left: -3%;    top: 58%;  transform: rotate(16deg); }
+.leaf--hero-5 { width: var(--leaf-sm); right: 26%;   bottom: 4%; transform: rotate(-8deg); }
+
+.script--hero { right: 2.5%; top: 26%; text-align: center; }
+.vert--hero   { right: 1.5%; top: 52%; }
+
+
+/* ── Counter placements ─────────────────────────────────────────────
+   .counter is overflow:hidden already, so anything hanging past the
+   edge is trimmed rather than widening the page. */
+
+.leaf--counter-1 { width: var(--leaf-md); right: 2%;  top: 4%;   transform: rotate(24deg); }
+.leaf--counter-2 { width: var(--leaf-sm); left: -2%;  bottom: 8%; transform: rotate(-20deg); }
+.leaf--counter-3 { width: var(--leaf-sm); left: 30%;  top: -2%;  transform: rotate(38deg); }
+
+
+/* ── The green band ─────────────────────────────────────────────────
+   The section itself now carries the same cream + marble as its
+   neighbours, and the GREEN is a separate layer inside it. That split
+   is what lets the wave exist: .dollar-ground is clipped, .dollar is
+   not, so leaves can sit half on the green and half on the cream the
+   way they do in the mockup.
+
+   The padding has to clear the wave. The clip takes up to 7% off the
+   top and 5.3% off the bottom of the ground, so at a ~700px section
+   that is ~49px and ~37px of green removed — the padding below is
+   comfortably past both, which is why no heading ever lands in the
+   trough of a wave. */
+
+.dollar {
+  position: relative;
+  background-color: var(--cream);
+  background-image: url("images/marble.webp");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-blend-mode: multiply;
+  background-attachment: fixed;
+  padding-block: clamp(6rem, 12vw, 9.5rem);
+  overflow: hidden;
+}
+
+.dollar-ground {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-color: var(--green-deep);
+  background-image: url("images/green-noise.webp");
+  background-size: cover;
+  background-position: 12% 70%;
+  background-repeat: no-repeat;
+  background-blend-mode: multiply;
+  clip-path: url(#wave-band);
+}
+
+/* The band's own content has to clear both the ground and the leaves. */
+.dollar > .wrap { position: relative; z-index: 2; }
+
+.leaf--dollar-1 { width: var(--leaf-lg); left: -4%;  top: 6%;    transform: rotate(-24deg); }
+.leaf--dollar-2 { width: var(--leaf-md); left: -1%;  bottom: 4%; transform: rotate(12deg); }
+.leaf--dollar-3 { width: var(--leaf-lg); right: -3%; top: 10%;   transform: rotate(34deg); }
+.leaf--dollar-4 { width: var(--leaf-md); right: 2%;  bottom: 6%; transform: rotate(-18deg); }
+.leaf--dollar-5 { width: var(--leaf-sm); right: 22%; top: -1%;   transform: rotate(8deg); }
+
+.script--dollar-a { left: 12%;  bottom: 12%; }
+.script--dollar-b { right: 12%; top: 30%; text-align: right; }
+
+
+/* ── Board placements ───────────────────────────────────────────────
+   The lightest section on the page — the price table is the whole
+   point, so foliage here stays at the edges and stays small. */
+
+.leaf--board-1 { width: var(--leaf-sm); right: -2%; top: 3%;    transform: rotate(-28deg); }
+.leaf--board-2 { width: var(--leaf-sm); left: -3%;  bottom: 10%; transform: rotate(22deg); }
+
+.script--board-a { right: 3%;  top: 8%;    text-align: right; }
+.script--board-b { right: 4%;  bottom: 8%; text-align: right; }
+
+
+/* ── Visit placements ───────────────────────────────────────────────
+   Nothing is allowed into the map's bottom-left corner: Google's terms
+   require their attribution stay visible, and a leaf over it is the
+   same violation as masking it. */
+
+.leaf--visit-1 { width: var(--leaf-md); left: -4%;  top: 2%;    transform: rotate(-18deg); }
+.leaf--visit-2 { width: var(--leaf-sm); left: 26%;  top: -2%;   transform: rotate(30deg); }
+.leaf--visit-3 { width: var(--leaf-md); right: -3%; bottom: 12%; transform: rotate(20deg); }
+
+.script--visit { right: 4%; bottom: 4%; text-align: right; }
+
+
+/* ── Small screens ──────────────────────────────────────────────────
+   Below 760px the margins the leaves live in do not exist, so most of
+   them would land behind text. Four survive, in the corners, and the
+   rest are display:none — which also means the browser never fetches
+   them, since they are loading="lazy". The colour fields go too: at
+   phone width they cover the whole hero rather than sweeping across it.
+
+   .dollar also drops the fixed attachment here, matching the rule the
+   other sections already have — fixed backgrounds repaint every scroll
+   frame and are a known jank source on mobile GPUs. */
+
+@media (max-width: 760px) {
+  .dollar { background-attachment: scroll; padding-block: clamp(4rem, 14vw, 6rem); }
+
+  .field--hero-b,
+  .leaf--hero-3, .leaf--hero-4, .leaf--hero-5,
+  .leaf--counter-3,
+  .leaf--dollar-3, .leaf--dollar-4, .leaf--dollar-5,
+  .leaf--board-1, .leaf--board-2,
+  .leaf--visit-2, .leaf--visit-3,
+  .script--board-a, .script--board-b,
+  .vert--hero { display: none; }
+
+  .script--hero     { right: 3%; top: 20%; font-size: 1.15rem; }
+  .script--dollar-a { left: 6%; bottom: 4%; font-size: 1.15rem; }
+  .script--dollar-b { display: none; }
+  .script--visit    { position: static; margin-top: 1.5rem; text-align: left; }
+}
+
+
+/* ── Corrections after the first pass on screen ─────────────────────
+
+   Measured with a script that walks every .leaf / .script / .field and
+   every text node and reports overlap, then read back against a
+   full-page screenshot. Bounding-box overlap ALONE over-reports badly
+   here: a rotated cutout's box is much bigger than its ink, and the
+   full-width <p> elements report their box, not their line. So the box
+   test was used to find candidates and the screenshot to confirm.
+
+   The one real collision it caught: .leaf--counter-1 sat on top of
+   "Seven of forty-six. The rest hang on the board", which is grey body
+   text — the exact thing decoration is not allowed to touch. */
+
+.leaf--counter-1 { right: -1%; top: 34%; transform: rotate(30deg); }
+.leaf--counter-3 { left: 1%;   top: 25%; transform: rotate(38deg); }
+
+/* The counter's original pale circles were drawn to carry an otherwise
+   empty section. The colour fields and the leaves now do that, and at
+   full strength all three together turned the section into soup. */
+.blob-counter-a { opacity: .16; }
+.blob-counter-b { opacity: .16; }
+
+/* Was a hard-edged ellipse parked in the middle of the right-hand side,
+   which read as a mistake rather than as a sweep. Pushed mostly
+   off-canvas and widened so only the leading edge shows. */
+.field--hero-b {
+  width: 68vw;
+  height: 38vw;
+  right: -34vw;
+  top: 12vw;
+  opacity: .45;
+}
+
+/* Both were tight against the right edge — the vertical line was
+   clipping. The hero column ends at 91.6%, so there is only ~8% of
+   margin to sit in; these now sit inside it rather than on its edge. */
+.script--hero { right: 3.5%; top: 21%; }
+.vert--hero   { right: 2.2%; top: 50%; }
+
+/* Was landing on the line-art cup in the corner. */
+.script--board-a { right: 11%; top: 6%; }
+
+/* The cup is the board's one illustration and the mockup shows it
+   clearly; at .22 it was barely on the page. */
+.deco-cup { opacity: .4; }
+
+
+/* .hero was the one section left at overflow:visible — the others were
+   already hidden. The pale field sweeping off the right edge therefore
+   widened the DOCUMENT by 490px instead of being trimmed, which on a
+   phone is a page that scrolls sideways. Everything the hero puts past
+   its own edge (the off-canvas leaves, both colour fields) is meant to
+   be cut off at that edge. */
+.hero { overflow: hidden; }
+
+
+/* ── The deck as a row ──────────────────────────────────────────────
+   Paired with the ROW slot table in script.js, which spreads the three
+   visible cards side by side above 1100px. At that spread the outer
+   cards land on top of the prev/next buttons, which used to flank the
+   deck — so above the same breakpoint the buttons restack underneath
+   it. Both halves must move together: change the breakpoint here and
+   the one in script.js goes with it.
+
+   The stage keeps its 720px max-width. The cards are absolutely
+   positioned inside .deck and deliberately overflow that box; it is
+   .counter's overflow:hidden that bounds them, not the stage. Only the
+   BUTTONS need to stay inside the stage, and centred under a 720px box
+   is exactly where they belong. */
+
+@media (min-width: 1100px) {
+  .stage {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-rows: auto auto;
+    justify-content: center;
+    align-content: center;
+    height: auto;
+    min-height: clamp(380px, 88vw, 460px);
+    column-gap: 1rem;
+    row-gap: clamp(1.2rem, 2.5vw, 2rem);
+  }
+
+  .deck { grid-column: 1 / -1; grid-row: 1; justify-self: center; }
+
+  .deckbtn--prev { grid-column: 1; grid-row: 2; justify-self: end; }
+  .deckbtn--next { grid-column: 2; grid-row: 2; justify-self: start; }
+}
+
+
+/* The hero's gold line and its sideways line were both landing on
+   .leaf--hero-1, which is the darkest thing in that corner. Neither is
+   clipped — they were painting ON TOP of the leaf, which is gold-ink on
+   near-black: the one thing the colour tokens were chosen to prevent.
+
+   The corner is genuinely crowded (photograph + big leaf + two pieces
+   of marginalia), so rather than shuffle them around each other the
+   gold line now sits under the photograph, where it reads as a caption
+   to it, and the sideways line takes the clear strip of right margin
+   beside it. */
+.script--hero { right: 3%;   top: 60%; }
+.vert--hero   { right: 1.8%; top: 40%; }
+
+
+/* Second attempt, and the reason the first one failed: the hero's right
+   margin is only ~121px wide (a 1200px column in a 1442px page) and
+   FOUR things wanted it — the photograph, a large leaf, the gold line
+   and the sideways line. Moving the two pieces of text around inside it
+   just swapped which leaf they landed on.
+
+   So the leaf moves instead. .leaf--hero-3 goes inboard, where it now
+   overlaps the photograph — which is what the mockup does with it
+   anyway — and that empties the margin from the first leaf's bottom
+   edge all the way down, leaving one clear strip for the gold line and
+   the sideways line to stack in. */
+.leaf--hero-3 { right: 26%; top: 44%; }
+.script--hero { right: 1%;   top: 33%; }
+.vert--hero   { right: 1.5%; top: 52%; }
+
+
+/* ── Small screens, corrected ───────────────────────────────────────
+   Measured at 486px against every heading, paragraph, table cell and
+   button. At this width the page has no margins left — the content
+   column IS the screen — so a leaf placed by percentage lands on type
+   rather than beside it. Four were doing exactly that:
+
+     leaf--hero-1     27% of the h1, and 67% of the Full menu button
+     leaf--hero-2     16% of the h1
+     leaf--dollar-1   25% of "The maths" AND 25% of its heading
+     leaf--counter-2  22% of a card's price
+
+   So on mobile the leaves stop being margin decoration and go where
+   the layout is genuinely empty: over the photograph (which has no
+   text on it), and in the vertical padding above and below a section's
+   content. Everything else is dropped — and because they are
+   loading="lazy", display:none also means they are never fetched, so
+   a phone downloads four leaves instead of fifteen.
+
+   Vertical bands that are free at this width, measured:
+     .hero     photo occupies 23–64%; head 0–23%; sub 64–100%
+     .counter  head 3–28%, cards 32–90%  → only the ends are clear
+     .dollar   content 11–89%            → the padding at both ends
+     .visit    content 10–96%            → the top strip only          */
+
+@media (max-width: 760px) {
+  .leaf--hero-2,
+  .leaf--counter-1,
+  .leaf--counter-2,
+  .leaf--dollar-1 { display: none; }
+
+  /* Over the photograph, which is the one large area up here carrying
+     no words. */
+  .leaf--hero-1 {
+    right: -12%; top: 27%; left: auto;
+    width: clamp(84px, 26vw, 132px);
+    transform: rotate(-18deg);
+  }
+
+  /* In the band's own top and bottom padding, straddling the wave. */
+  .leaf--dollar-2 {
+    left: -9%; bottom: 1%;
+    width: clamp(78px, 24vw, 122px);
+  }
+
+  .leaf--visit-1 {
+    left: -9%; top: 0.5%;
+    width: clamp(78px, 24vw, 122px);
+  }
+}
+
+/* .leaf--dollar-2 still covered 30% of "One espresso" at 486px: the
+   clear band below the equation is only ~72px tall and the leaf was
+   122px, so anchoring its BOTTOM to the section still pushed its top
+   up into the type. Smaller, and moved to the right-hand side — the
+   equation is left-aligned at this width, so the bottom-right corner
+   is the one genuinely empty part of the band. */
+@media (max-width: 760px) {
+  .leaf--dollar-2 {
+    left: auto; right: -8%; bottom: 1%;
+    width: clamp(68px, 19vw, 96px);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   ONE PIECE — 2026-09-05, second pass
+
+   The page read as five stacked panels. The reference reads as one
+   continuous sheet that the sections happen to sit on. Three changes
+   do that:
+
+   1. THE GROUND MOVED TO <body>. Each section used to paint its own
+      cream + marble. Because that marble was already
+      background-attachment: fixed it LOOKED continuous, but each
+      section was still an opaque rectangle — so nothing could ever
+      cross a section boundary; whatever spilled out was painted over
+      by the next section's own background. One ground on the body,
+      transparent sections, and the boundaries stop existing.
+
+   2. overflow-x: clip INSTEAD OF overflow: hidden. `clip` is the only
+      overflow value that may pair with `visible` on the other axis, so
+      the sections still cannot scroll sideways — the thing that broke
+      the page earlier — while shapes and leaves are free to run past
+      the top and bottom edges into their neighbours.
+
+   3. .dollar TAKES A STACKING CONTEXT. With sections transparent and
+      spilling into each other, paint order is decided by DOM order,
+      and .board comes after .dollar — so the board's pale field was
+      landing ON TOP of the green band. z-index:1 lifts the whole band,
+      contents and all, above the fields either side of it.
+   ═══════════════════════════════════════════════════════════════════ */
+
+body {
+  background-color: var(--cream);
+  background-image: url("images/marble.webp");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-blend-mode: multiply;
+  background-attachment: fixed;
+}
+
+.hero,
+.counter,
+.board,
+.visit,
+.dollar {
+  background-color: transparent;
+  background-image: none;
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+.dollar { position: relative; z-index: 1; }
+
+@media (max-width: 760px) {
+  body { background-attachment: scroll; }
+}
+
+
+/* ── The brighter paint ─────────────────────────────────────────────
+   #5DC683 is a colour-FIELD green, not a type green: cream on it is
+   1.9:1 and white 2.1:1, both far under any threshold. So it is used
+   the way --green already was — as shapes, washes and accents — and
+   never set as a text colour on a light ground. Charcoal ON it clears
+   8:1, which is why the deck's tag pill can use it as a background.
+
+   The washes below are the same hue at low alpha rather than a
+   pre-mixed pastel, so they tint whatever they cross — cream here,
+   marble there — and stay in-family with the band. */
+:root { --green-bright: #5DC683; }
+
+
+/* ── Fields that ignore the section edges ───────────────────────────
+   Each of these lives in one section and deliberately hangs out of it,
+   which is what stitches the page together now that the sections no
+   longer paint over each other. Kept at low alpha because body text
+   crosses them: at .22 over cream the grey body colour still measures
+   ~5:1, and that is the number that sets the ceiling here. Raise the
+   alpha and you are spending contrast. */
+
+.field--flow-a,
+.field--flow-b,
+.field--flow-c,
+.field--flow-d {
+  background: var(--green-bright);
+  border-radius: 54% 46% 58% 42% / 48% 52% 48% 52%;
+}
+
+/* Bridges hero → counter. */
+.field--flow-a {
+  width: 96vw;
+  height: 40vw;
+  left: -30vw;
+  top: -22vw;
+  opacity: .16;
+}
+
+/* Runs out of the counter and under the green band. */
+.field--flow-b {
+  width: 74vw;
+  height: 34vw;
+  right: -30vw;
+  bottom: -16vw;
+  opacity: .2;
+  border-radius: 46% 54% 40% 60% / 56% 44% 56% 44%;
+}
+
+/* Rises out of the board and up behind the band's lower wave. */
+.field--flow-c {
+  width: 88vw;
+  height: 34vw;
+  left: -34vw;
+  top: -15vw;
+  opacity: .17;
+}
+
+/* Carries the visit section and runs down toward the footer. */
+.field--flow-d {
+  width: 80vw;
+  height: 36vw;
+  right: -32vw;
+  top: 30%;
+  opacity: .18;
+  border-radius: 60% 40% 46% 54% / 42% 58% 42% 58%;
+}
+
+/* The hero's two original fields join the same family. */
+.field--hero-a { background: var(--green-bright); opacity: .19; }
+.field--hero-b { background: var(--green-bright); opacity: .17; }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   ON THE COUNTER — two columns
+
+   The reference puts the heading, the lede and the two arrows in a
+   narrow left column and gives the deck the whole right-hand side.
+   The section's three children (.counter-head, .stage, .dots) are
+   direct siblings, so .counter itself becomes the grid rather than
+   wrapping them in something new.
+
+   .counter-head also carries .wrap, which sets a max-width and
+   margin-inline:auto — inside a grid column that centres it in the
+   column instead of filling it, so both are reset here.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.deckctl {
+  display: grid;
+  gap: .95rem;
+  margin-top: clamp(1.3rem, 2.6vw, 1.9rem);
+}
+
+.deckctl__hint {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  margin: 0;
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.deckctl__arrow {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.deckctl__btns { display: flex; gap: .7rem; }
+
+@media (min-width: 1100px) {
+  .counter {
+    display: grid;
+    grid-template-columns: minmax(0, .62fr) minmax(0, 1fr);
+    grid-template-areas:
+      "head deck"
+      "head dots";
+    align-items: center;
+    column-gap: clamp(1.5rem, 3vw, 2.75rem);
+    padding-inline: var(--gutter);
+  }
+
+  .counter-head {
+    grid-area: head;
+    grid-template-columns: 1fr;     /* undoes the 1fr auto set at 860px */
+    align-items: start;
+    align-self: center;
+    width: auto;
+    max-width: none;
+    margin-inline: 0;
+    margin-bottom: 0;
+  }
+
+  .counter-side { display: block; }
+
+  .stage {
+    grid-area: deck;
+    max-width: none;
+    margin-top: 0;
+  }
+
+  .dots { grid-area: dots; }
+
+  /* Narrower than the single-column deck: three of these plus their
+     gutters have to fit the right column, not the whole page. */
+  .deck { width: clamp(216px, 18vw, 258px); }
+
+  /* Supersedes the earlier rule that restacked the arrows underneath
+     the deck. They are not in .stage any more — they moved into
+     .counter-head — so the stage is just the deck now. */
+  .stage {
+    display: flex;
+    grid-template-columns: none;
+    grid-template-rows: none;
+  }
+}
+
+
+/* ── The cards ──────────────────────────────────────────────────────
+   The tag is absolutely positioned on EVERY card, not just the green
+   one. That looks like an odd way to centre one badge, and it is the
+   point: taking it out of the flow on only the signature card would
+   have given that card more room for its .dcard__shot, and the drink
+   inside it would have rendered larger than the other four — the exact
+   mismatch that was just fixed in the image files themselves. Out of
+   flow on all five keeps one inner layout, so every cup stays the same
+   size. The padding-top below is the room the badge used to take. */
+
+.dcard { padding-top: 2.55rem; }
+
+.dcard__tag {
+  position: absolute;
+  top: .95rem;
+  left: 1.15rem;
+  align-self: auto;
+}
+
+.dcard--green .dcard__tag {
+  top: -.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--gold-soft);
+  color: var(--green-dark);
+  white-space: nowrap;
+  box-shadow: 0 8px 16px -8px rgba(20, 48, 24, .7);
+}
+
+.dcard__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+}
+
+.dcard__go {
+  width: 38px;
+  height: 38px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--green-deep);
+  color: var(--cream);
+  text-decoration: none;
+  transition: transform .22s var(--ease), background-color .22s var(--ease);
+}
+
+.dcard__go svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dcard--green .dcard__go { background: var(--cream); color: var(--green-deep); }
+
+.dcard__go:hover { transform: translateX(2px); }
+
+.dcard__go:focus-visible {
+  outline: 3px solid var(--gold);
+  outline-offset: 3px;
+}
+
+/* Only the front card's arrow is live — see the note in script.js
+   render(). On a side card a tap means "bring this one round", and a
+   link would hijack that and navigate instead. */
+.dcard:not(.is-front) .dcard__go { pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dcard__go { transition: none; }
+  .dcard__go:hover { transform: none; }
+}
+
+
+/* ── The washes, redrawn as sweeps ──────────────────────────────────
+   First attempt used border-radius blobs. On screen they read as four
+   pale BUBBLES sitting on the page — the opposite of the intent, since
+   the whole point was to stop the page looking like separate parts.
+
+   The fix is shape, not opacity: each wash is now a wide, shallow band
+   clipped to #wave-soft / #wave-soft-b, running wider than the viewport
+   so both ends are cut off by the screen. A shape whose ends you cannot
+   see reads as something passing THROUGH the page rather than an object
+   placed on it. Alternating the two clips keeps consecutive sweeps from
+   rhyming.
+
+   These stay well clear of the type contrast budget: the strongest is
+   .20 of #5DC683 over cream, which leaves the grey body colour at
+   ~5:1. */
+
+.field--flow-a,
+.field--flow-b,
+.field--flow-c,
+.field--flow-d,
+.field--hero-a,
+.field--hero-b {
+  border-radius: 0;
+  background: var(--green-bright);
+}
+
+.field--flow-a, .field--flow-c, .field--hero-a { clip-path: url(#wave-soft); }
+.field--flow-b, .field--flow-d, .field--hero-b { clip-path: url(#wave-soft-b); }
+
+.field--hero-a {
+  width: 132vw; height: 34vw;
+  left: -16vw; top: -9vw;
+  opacity: .20;
+}
+
+.field--hero-b {
+  width: 128vw; height: 26vw;
+  left: -14vw; top: auto; right: auto; bottom: -6vw;
+  opacity: .15;
+}
+
+/* Bridges hero → counter. */
+.field--flow-a {
+  width: 136vw; height: 30vw;
+  left: -18vw; right: auto; top: -13vw;
+  opacity: .17;
+}
+
+/* Runs out of the counter and under the green band. */
+.field--flow-b {
+  width: 132vw; height: 26vw;
+  left: -16vw; right: auto; bottom: -11vw;
+  opacity: .20;
+}
+
+/* Rises out of the board, up behind the band's lower wave. */
+.field--flow-c {
+  width: 138vw; height: 28vw;
+  left: -20vw; top: -11vw;
+  opacity: .17;
+}
+
+/* Carries the visit section down toward the footer. */
+.field--flow-d {
+  width: 134vw; height: 32vw;
+  left: -17vw; right: auto; top: 34%;
+  opacity: .17;
+}
+
+
+/* ── Counter decoration, re-placed for the two-column grid ──────────
+   Every percentage in this section moved when .counter became a grid:
+   the head is now x 4.5–38.2%, the deck x 41.7–95%, and between them
+   there is a 50px gap that nothing fits in. Measured free bands:
+
+     y  0–11%    across the top     (leaves hang up into the hero)
+     y 76–100%   left of x 42%      (under the arrows)
+     y 87–100%   across the bottom  (under the dots)
+
+   .leaf--counter-1 was covering 62% of the Iced Matcha card and
+   .leaf--counter-3 was sitting across "The ones people come back for."
+   Both are now in the bands above. Because .counter is overflow-y
+   visible, the top one runs up into the hero and the bottom one tucks
+   under the green band, which is the stitching doing its job. */
+
+.leaf--counter-1 { left: 30%; right: auto; top: -14%; bottom: auto; transform: rotate(28deg); }
+.leaf--counter-2 { left: 1%;  right: auto; top: auto; bottom: 1%;   transform: rotate(-22deg); }
+.leaf--counter-3 { left: auto; right: -4%; top: auto; bottom: -6%;  transform: rotate(34deg); }
+
+/* The old pale circles are redundant now the sweeps run through this
+   section, and at any strength they read as bubbles next to a band. */
+.blob-counter-a,
+.blob-counter-b { display: none; }
+
+/* leaf--counter-1 at left:30% clipped the corner of the first card,
+   which is exactly where its "Frappé" tag sits. Pulled inboard so it
+   hangs over the gutter between the two columns instead. */
+.leaf--counter-1 { left: 19%; }
+
+
+/* ── Contrast corrections ───────────────────────────────────────────
+   Measured, not estimated: every text run on the page was screenshotted
+   with the glyphs turned transparent, the background behind each one
+   sampled from the actual pixels (median of a 7x7 patch, so a marble
+   vein or a leaf edge cannot decide it), and the ratio computed against
+   the flattened text colour. 126 runs, four failures.
+
+   TWO WERE MINE, from the green washes:
+
+     "Ankawa · Erbil"  4.49  — --muted where two hero washes overlap.
+                                Stacked alpha made the tint stronger than
+                                either field alone.
+
+     "="               2.75  — the equation operator on the band. It is
+                                inside an aria-hidden block with an
+                                .sr-only equivalent, so it is decorative,
+                                but it is still visible text.
+
+   TWO WERE ALREADY THERE and the audit simply surfaced them:
+
+     "Visit"           1.33  — .label-gold is --gold-soft, which was
+                                measured for DARK grounds. In .dollar it
+                                sits on green and is fine; in .visit it
+                                sits on cream, where it is close to
+                                invisible. This predates the redesign.
+
+     "Every day · …"   4.48  — --gold-ink on cream that the marble has
+                                multiplied down to rgb(221,219,204). The
+                                sheet already warns about this exact trap
+                                for --muted; --gold-ink had the same
+                                problem, two hundredths under.
+
+   All four now clear their threshold with headroom rather than sitting
+   on it, because the marble texture means the true background varies
+   by a few points depending on where a line lands. */
+
+:root {
+  --muted:    #59594F;   /* was #5E5E54 — L .1104 -> .0986 */
+  --gold-ink: #765810;   /* was #7A5C12 — L .1185 -> .1084 */
+}
+
+/* --gold-soft is a dark-ground colour. On cream it needs the ink step. */
+.visit .label-gold { color: var(--gold-ink); }
+
+.eq-op { color: rgba(244, 239, 228, .62); }
+
+/* The two hero washes overlap; at .20 + .15 the combined tint was
+   pushing body text under 4.5:1. The lower one carries less now. */
+.field--hero-b { opacity: .10; }
+
+
+/* ── The monogram watermark ─────────────────────────────────────────
+   stroke-width is in the symbol's own viewBox units (50.7 wide), which
+   is how .brand-logo does it too: 4.6 units is the mark's native
+   monoline, so it stays the same drawing whether it renders at 17px in
+   the header or 215px here. A px stroke-width would go spidery at this
+   size and clot at that one. */
+
+.wmark {
+  position: absolute;
+  z-index: 0;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+  aspect-ratio: 50.7 / 63.3;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 4.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Left margin of the green band, vertically centred on it — where the
+   reference puts it. It runs slightly off the page edge on purpose:
+   .dollar clips horizontally, so the mark is cropped rather than
+   floating, which stops it reading as a sticker. */
+.wmark--dollar {
+  left: -1.5%;
+  top: 50%;
+  transform: translateY(-50%);
+  width: clamp(126px, 15vw, 218px);
+  color: var(--cream);
+  opacity: .15;
+}
+
+@media (max-width: 760px) {
+  /* At phone width the band has no left margin — the heading starts at
+     the gutter — so the mark would sit under "What a dollar still
+     buys." rather than beside it. */
+  .wmark--dollar { left: auto; right: -8%; top: 8%; transform: none; width: clamp(96px, 30vw, 150px); opacity: .11; }
+}
+
+/* Shifted inboard: at left:-1.5% the crop was taking the B's stem, and
+   without the stem the mark stopped reading as the letter and became an
+   abstract shape. It now sits far enough in that the whole monogram is
+   legible, which means it also passes further behind the heading —
+   re-measured after the move, and cream on the band still clears its
+   threshold there. */
+.wmark--dollar { left: 0.5%; opacity: .17; }
+
+/* Sampling the real glyph line boxes (Range.getClientRects) rather than
+   the element box found what the coarser pass had missed: the watermark
+   lightens the band from rgb(47,97,54) to about rgb(76,120,70) exactly
+   where .dollar-note sits, and the note was riding at 4.65:1 to begin
+   with — cream at 78% on deep green. Lightening the ground under it
+   dropped it to 3.41.
+
+   Both ends of that get fixed: the mark carries less, and the note is
+   full-strength cream. It is body copy on the page's darkest ground;
+   there was never a good reason for it to be translucent. */
+.wmark--dollar { opacity: .13; }
+.dollar-note   { color: var(--cream); }
+
+
+/* ── The hero → counter transition, simplified ──────────────────────
+   Measured page positions showed the problem: .field--hero-b ran
+   514–889 and .field--flow-a ran 615–1047, so two wave-clipped bands
+   overlapped across the hero/counter boundary. Each band has a wavy top
+   AND a wavy bottom, which put FOUR undulating edges inside ~530px —
+   read as stripes, not as a sweep. Worse, .field--hero-a ended at 429,
+   leaving a bare gap and then a doubled band: a stutter exactly where
+   the page most needs to feel continuous.
+
+   One band now carries that transition. .field--hero-b is gone
+   entirely, and .field--flow-a is pulled up to overlap the bottom of
+   .field--hero-a so the two read as one continuous wash handing off
+   rather than as two shapes with a seam between them. */
+
+.field--hero-b { display: none; }
+
+.field--flow-a {
+  top: -26vw;
+  height: 40vw;
+}
+
+
+/* ── The washes below the hero: removed ─────────────────────────────
+   Collapsing the doubled band helped but did not fix it. The deeper
+   problem is that a wave stretched to 136vw has its curvature stretched
+   with it: one period spans most of the screen, so what is a wave in
+   the abstract renders as a near-horizontal LINE ruled across the page.
+   Three of them, at the counter and the board, banded straight through
+   "The ones people come back for." and "Forty-six drinks." — tonal
+   steps behind headings, which is the opposite of continuous.
+
+   Going back to the reference settles it: its counter and its board are
+   plain cream. The large green shapes live in the hero and in the band,
+   and nowhere else. So these three go.
+
+   The page does NOT lose its continuity by dropping them — that comes
+   from the ground moving to <body>, the sections being transparent and
+   overflow-y visible, the band's wave, and the leaves crossing section
+   edges. The washes were an addition on top of that, and below the hero
+   they were costing more than they paid for. */
+
+.field--flow-a,
+.field--flow-b,
+.field--flow-c { display: none; }
+
+/* The visit section keeps one, because the reference does have green
+   down there — but moved hard left, behind the map, where it backs an
+   image instead of ruling a line across the contact rows. */
+.field--flow-d {
+  width: 78vw;
+  height: 30vw;
+  left: -34vw;
+  right: auto;
+  top: 26%;
+  opacity: .16;
+}
+
+/* The watermark comes off entirely on small screens. Measured at 486px
+   it covered 100% of "The maths", 85% of "still buys." and 40% of the
+   note: at phone width the band's content runs 11–89% of its height,
+   which leaves ~72px of clear space, and the mark is ~187px tall. There
+   is no position for it here — shrinking it to fit would make it a logo
+   bug rather than a watermark. The band still has the leaves and the
+   gold line at this size. */
+@media (max-width: 760px) {
+  .wmark--dollar { display: none; }
+}
+
+/* The Instagram handle is @the.beanerycafeerbil — 21 characters and, to a
+   browser, one unbreakable token about 161px wide. It fits every current
+   breakpoint (below 460px .fact already stacks to one column and hands the
+   value the full width), but a token that cannot break has no fallback: if
+   the column is ever narrower than the word — a larger default font size,
+   page zoom, a longer handle later — it would be CLIPPED rather than wrap,
+   because the sections are overflow-x: clip. Letting it break is free and
+   changes nothing at any size where it already fits. */
+.fact dd { overflow-wrap: anywhere; }
