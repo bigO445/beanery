@@ -286,15 +286,20 @@
 
       <!-- Above the fold, so no loading="lazy" — but fetchpriority="low" keeps
          them out of the hero photograph's way, which is the LCP element. -->
-      <img class="leaf leaf--hero-1" src="images/leaf-sprig-b.webp" width="334" height="308" alt=""
+      <!-- FOUR, and they are a CLUSTER, not a scatter. hero-1 and hero-2
+           overlap each other in the top-right corner the way the reference
+           does it — one large leaf running off the corner, a second tucked
+           under it at a different angle. Two single leaves the same distance
+           apart would read as wallpaper; overlapped at odd angles they read
+           as one branch coming into frame. hero-3 answers them from the
+           left margin, hero-4 is a small note near the bottom. -->
+      <img class="leaf leaf--hero-1" src="images/leaf-broad.webp" width="170" height="265" alt=""
         aria-hidden="true" fetchpriority="low" decoding="async">
-      <img class="leaf leaf--hero-2" src="images/leaf-broad-tall.webp" width="251" height="355" alt=""
+      <img class="leaf leaf--hero-2" src="images/leaf-duo.webp" width="199" height="265" alt=""
         aria-hidden="true" fetchpriority="low" decoding="async">
-      <img class="leaf leaf--hero-3" src="images/leaf-pair.webp" width="254" height="315" alt=""
+      <img class="leaf leaf--hero-3" src="images/leaf-point.webp" width="148" height="234" alt=""
         aria-hidden="true" fetchpriority="low" decoding="async">
-      <img class="leaf leaf--hero-4" src="images/leaf-curl-a.webp" width="207" height="328" alt=""
-        aria-hidden="true" fetchpriority="low" decoding="async">
-      <img class="leaf leaf--hero-5" src="images/leaf-small.webp" width="244" height="116" alt=""
+      <img class="leaf leaf--hero-4" src="images/leaf-vee.webp" width="160" height="142" alt=""
         aria-hidden="true" fetchpriority="low" decoding="async">
 
       <p class="script script--hero" aria-hidden="true">More than<br>coffee</p>
@@ -449,11 +454,16 @@
       <span class="field field--flow-a" aria-hidden="true"></span>
       <span class="field field--flow-b" aria-hidden="true"></span>
 
-      <img class="leaf leaf--counter-1" src="images/leaf-curl-b.webp" width="191" height="354" alt=""
+      <!-- TWO. The reference is nearly bare here — the drinks are the
+           decoration in this section, and anything else competes with
+           them. counter-1 is the sprig that peeks out from BEHIND the top
+           of the card deck: it works because these <img> come before
+           .stage in the DOM and both sit at z-index 0, so the cards paint
+           over it. Moving it after .stage would put a leaf on top of the
+           front card. -->
+      <img class="leaf leaf--counter-1" src="images/leaf-sprig.webp" width="162" height="266" alt=""
         aria-hidden="true" loading="lazy" decoding="async">
-      <img class="leaf leaf--counter-2" src="images/leaf-bright-curve.webp" width="336" height="322" alt=""
-        aria-hidden="true" loading="lazy" decoding="async">
-      <img class="leaf leaf--counter-3" src="images/leaf-drops-a.webp" width="236" height="312" alt=""
+      <img class="leaf leaf--counter-2" src="images/leaf-vee.webp" width="160" height="142" alt=""
         aria-hidden="true" loading="lazy" decoding="async">
       <svg class="deco deco-swirl-a" aria-hidden="true" focusable="false">
         <use href="#i-swirl" />
@@ -462,7 +472,13 @@
       <div class="wrap counter-head">
         <div>
           <p class="label">On the counter</p>
-          <h2 class="reveal">The ones people<br>come back for.</h2>
+          <!-- The space before the <br> is load-bearing. Below 1100px the
+               heading sits in a half-width column and styles.css hides this
+               break so the line can wrap on its own; with no space in the
+               source, "people" and "come" would then set as "peoplecome".
+               A browser drops trailing whitespace at a line break, so the
+               space costs nothing at the widths where the break still shows. -->
+          <h2 class="reveal">The ones people <br>come back for.</h2>
         </div>
         <div class="counter-side">
           <p class="lede reveal">
@@ -671,15 +687,18 @@
         <use href="#i-spark" />
       </svg>
 
-      <img class="leaf leaf--dollar-1" src="images/leaf-broad-dark.webp" width="289" height="344" alt=""
+      <!-- THREE, and the file choice is doing work here. This is the one
+           dark ground on the page, so the two on the left are the BRIGHT
+           and MID leaves of the set — the near-black ones read as holes
+           punched in the band rather than as foliage. dollar-3 on the
+           right may be dark because it half-hangs off the band onto the
+           cream above it, which is where the reference puts its darkest
+           leaves too. -->
+      <img class="leaf leaf--dollar-1" src="images/leaf-bright.webp" width="97" height="182" alt=""
         aria-hidden="true" loading="lazy" decoding="async">
-      <img class="leaf leaf--dollar-2" src="images/leaf-sprig-a.webp" width="342" height="329" alt=""
+      <img class="leaf leaf--dollar-2" src="images/leaf-sprig.webp" width="162" height="266" alt=""
         aria-hidden="true" loading="lazy" decoding="async">
-      <img class="leaf leaf--dollar-3" src="images/leaf-broad-drops.webp" width="300" height="344" alt=""
-        aria-hidden="true" loading="lazy" decoding="async">
-      <img class="leaf leaf--dollar-4" src="images/leaf-point-mid.webp" width="270" height="327" alt=""
-        aria-hidden="true" loading="lazy" decoding="async">
-      <img class="leaf leaf--dollar-5" src="images/leaf-drops-b.webp" width="359" height="191" alt=""
+      <img class="leaf leaf--dollar-3" src="images/leaf-duo.webp" width="199" height="265" alt=""
         aria-hidden="true" loading="lazy" decoding="async">
 
       <p class="script script--dollar-a" aria-hidden="true">Same good coffee,<br>always</p>
@@ -746,10 +765,13 @@
 
       <span class="field field--flow-c" aria-hidden="true"></span>
 
-      <img class="leaf leaf--board-1" src="images/leaf-slim-dark.webp" width="311" height="206" alt=""
-        aria-hidden="true" loading="lazy" decoding="async">
-      <img class="leaf leaf--board-2" src="images/leaf-curl-c.webp" width="121" height="339" alt=""
-        aria-hidden="true" loading="lazy" decoding="async">
+      <!-- NO LEAVES IN THIS SECTION. Deliberate, and it is the reason the
+           rest of the page can afford any: the board is a 46-line price
+           list, the densest block of type on the site, and the reference
+           leaves it completely clear. The foliage reads as decoration
+           rather than as noise precisely because it stops here. If leaves
+           are ever wanted back, this is the last section that should get
+           them, not the first. -->
 
       <p class="script script--board-a" aria-hidden="true">Drinks, desserts,<br>good days</p>
       <p class="script script--board-b" aria-hidden="true">Same good taste,<br>new days</p>
@@ -839,11 +861,12 @@
 
       <span class="field field--flow-d" aria-hidden="true"></span>
 
-      <img class="leaf leaf--visit-1" src="images/leaf-sprig-a.webp" width="342" height="329" alt=""
-        aria-hidden="true" loading="lazy" decoding="async">
-      <img class="leaf leaf--visit-2" src="images/leaf-broad-drops.webp" width="300" height="344" alt=""
-        aria-hidden="true" loading="lazy" decoding="async">
-      <img class="leaf leaf--visit-3" src="images/leaf-point-mid.webp" width="270" height="327" alt=""
+      <!-- ONE. The section already carries a map, and the footer directly
+           below it now opens on a full-bleed photograph of the shopfront —
+           there is more than enough picture here without adding a hedge to
+           it. A single leaf in the right margin is enough to carry the
+           motif across the gap between the green band and the footer. -->
+      <img class="leaf leaf--visit-1" src="images/leaf-slim.webp" width="145" height="228" alt=""
         aria-hidden="true" loading="lazy" decoding="async">
 
       <p class="script script--visit" aria-hidden="true">Good space,<br>good people</p>
@@ -920,6 +943,36 @@
 
 
   <footer class="site-foot">
+    <!-- ═══════════════════════════════════════════════════════════
+         THE SHOPFRONT, AT THE END OF THE PAGE.
+
+         It goes here and not in .visit on purpose. The visit section
+         is instructions — a map, an address, opening hours, a
+         directions button — and a large photograph dropped into the
+         middle of that pushes the practical lines apart. Sitting
+         directly under it, the picture is the answer to the question
+         those lines just raised: this is what to look for when you
+         get there.
+
+         It carries real alt text rather than aria-hidden. Every other
+         image on this page is either a product shot the words already
+         name or a decorative leaf; this one is the only picture of
+         the place itself, and "what does it look like" is not
+         answered anywhere else in the page's text.
+
+         Three widths, because this is the largest image on the site
+         and a phone has no use for the 1600px one. sizes="100vw" is
+         accurate — it is full-bleed at every width.
+         ═══════════════════════════════════════════════════════════ -->
+    <figure class="foot-shot">
+      <img src="images/storefront-1000.webp"
+        srcset="images/storefront-640.webp 640w,
+                images/storefront-1000.webp 1000w,
+                images/storefront.webp 1600w"
+        sizes="100vw" width="1600" height="900" loading="lazy" decoding="async"
+        alt="The Beanery Cafe after dark: a lit shopfront in Ankawa with gold lettering in English and Kurdish, green-lit interior, and planted benches along the pavement.">
+    </figure>
+
     <svg class="deco deco-bean-d" aria-hidden="true" focusable="false">
       <use href="#i-bean" />
     </svg>

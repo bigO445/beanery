@@ -114,6 +114,35 @@
         var slot = a < SLOT.length ? SLOT[a] : PARKED;
         var w = d < 0 ? -1 : 1;
 
+        /* ONE-SIDED BELOW 1100px. From that width down the deck sits in
+           the right-hand column of a two-column section (styles.css,
+           'THE COUNTER, SIDE BY SIDE ALL THE WAY DOWN'), with the
+           heading and lede immediately to its left. The fan's TRAILING
+           card peeks at -52% of a card's width, which lands it on top
+           of those words at every size in that range — the narrower the
+           screen, the worse.
+
+           So below 1100px only the leading card peeks, and it bleeds
+           off the right edge where .counter's overflow-x: clip trims
+           it. The deck still holds all five and still turns through
+           them; one of the two neighbours is simply not drawn.
+
+           This is the same 1100px the SLOT table switches on, and the
+           same one styles.css lays the section out on. All three move
+           together or none of them do.
+
+           w is forced POSITIVE with it, which is the half that is easy
+           to miss. Parking alone is not enough: PARKED is only
+           opacity 0, and a card leaving the front still ANIMATES to its
+           parked place. The trailing side parks at translateX(-96%), so
+           on every turn the outgoing card slid left ACROSS THE HEADING
+           while it faded — and it faded in .42s against a .62s
+           transform, so for the last fifth of a second of travel there
+           was a visible card sitting on the words. Sending it out the
+           same side it came in keeps the whole deck, at rest and in
+           motion, on its own side of the section. */
+        if (!wide.matches && d < 0) { slot = PARKED; w = 1; }
+
         c.style.transform =
           "translate(-50%,-50%)" +
           " translateX(" + (w * slot.x) + "%)" +

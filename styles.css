@@ -2205,42 +2205,80 @@ h2.on-green, h2.on-dark { color: var(--cream); }
 
 
 /* ── Leaf sizes ─────────────────────────────────────────────────────
-   Three steps, all fluid. The source leaves are ~250–360px on the long
-   edge, so --leaf-lg is capped at 235px: pushed past its native size a
-   photographic cutout goes soft, and soft foliage reads as a cheap
-   stock asset rather than as art direction. If bigger leaves are ever
-   wanted in the hero, they need re-rendering at ~2000px, not upscaling. */
+   Three steps, all fluid, and every cap is set by the SOURCE FILE, not
+   by taste. The current set is cut from the supplied sheet and the
+   individual leaves come off it at 97–199px on the long edge — much
+   smaller than the previous set's 250–360px. Pushed past native, a
+   photographic cutout goes soft, and soft foliage reads as cheap stock
+   rather than as art direction, so --leaf-lg stops at 195px (about
+   1.15x on the largest file, which is as far as these go before the
+   edges mush).
+
+   The apparent size comes from bleed instead: every large leaf is
+   positioned to run off its section's edge, so a 195px leaf reads as a
+   branch entering the frame rather than as a 195px sticker. If truly
+   bigger leaves are wanted, they need re-cutting from a larger sheet —
+   raising these numbers will only blur what is here. */
 :root {
-  --leaf-lg: clamp(132px, 15vw, 235px);
-  --leaf-md: clamp(100px, 11vw, 178px);
-  --leaf-sm: clamp(72px,  8.5vw, 126px);
+  --leaf-lg: clamp(120px, 13.5vw, 195px);
+  --leaf-md: clamp(96px,  10.5vw, 155px);
+  --leaf-sm: clamp(70px,  8vw,    115px);
 }
 
 
 /* ── Hero placements ────────────────────────────────────────────────
-   Every one of these sits in a margin or over the photograph. None of
-   them passes behind running text: the content column is 1200px inside
-   a 1440px page, which leaves only ~8% of margin each side, so the
-   leaves that come inward do it in the VERTICAL gaps — above the
-   eyebrow, below the buttons — rather than beside the words. */
+   Four leaves in two gestures: a CLUSTER in the top-right corner
+   (hero-1 over hero-2, overlapping, at opposing angles) and a quieter
+   answer down the left margin (hero-3, hero-4).
 
-.leaf--hero-1 { width: var(--leaf-lg); right: 1%;    top: -3%;  transform: rotate(-14deg); }
-.leaf--hero-2 { width: var(--leaf-md); left: -5%;    top: -6%;  transform: rotate(28deg); }
-.leaf--hero-3 { width: var(--leaf-md); right: 3%;    top: 44%;  transform: rotate(-32deg); }
-.leaf--hero-4 { width: var(--leaf-sm); left: -3%;    top: 58%;  transform: rotate(16deg); }
-.leaf--hero-5 { width: var(--leaf-sm); right: 26%;   bottom: 4%; transform: rotate(-8deg); }
+   The cluster is the part worth preserving. The reference does not
+   space its leaves evenly — it overlaps two or three of them at one
+   corner so they read as a single branch coming into frame, and leaves
+   the rest of the edge empty. Evenly spaced single leaves at the same
+   count read as wallpaper.
+
+   The old constraint still holds: none of these passes behind running
+   text. The content column is 1200px inside a 1440px page, leaving
+   only ~8% of margin each side, so anything that comes inward does it
+   over the PHOTOGRAPH (which is where the reference puts its leaves
+   too) or in a vertical gap — never beside the words. Measured
+   positions of everything in this section are in the comment at the
+   foot of this block. */
+
+/* The left-hand offsets are max(), not a plain percentage, and that is
+   the fix for a bug you only see on a big monitor. A percentage bleed
+   keeps GROWING with the viewport while the leaf itself stops growing
+   at its clamp — so past about 1500px the leaf walked entirely off the
+   left edge and simply vanished. max() pins the bleed once it reaches
+   the pixel value, so the sliver that shows is roughly constant from
+   1100px up instead of shrinking to nothing. */
+.leaf--hero-1 { width: var(--leaf-lg); right: -5%; top: -6%;                     transform: rotate(-26deg); }
+.leaf--hero-2 { width: var(--leaf-md); right: 5%;  top: 8%;                      transform: rotate(24deg); }
+/* hero-3 sits ABOVE the headline, not beside it. The h1's first line
+   starts at 17% of the hero, so a leaf whose bottom stops short of
+   that clears the text COMPLETELY and is then free to come inboard on
+   x — which is what makes it visible at all. Bled sideways instead, the
+   only part of it inside the viewport was the empty corner of a
+   34deg-rotated bounding box, i.e. nothing. */
+.leaf--hero-3 { width: var(--leaf-md); left: -8%; top: -20%;                     transform: rotate(-52deg); }
+.leaf--hero-4 { width: var(--leaf-sm); left: max(-6%, -80px);   bottom: 0%;      transform: rotate(-16deg); }
 
 .script--hero { right: 2.5%; top: 26%; text-align: center; }
 .vert--hero   { right: 1.5%; top: 52%; }
 
 
 /* ── Counter placements ─────────────────────────────────────────────
-   .counter is overflow:hidden already, so anything hanging past the
-   edge is trimmed rather than widening the page. */
+   Two, and both are edge notes. .counter is overflow-x: clip already,
+   so anything hanging past the side is trimmed rather than widening
+   the page.
 
-.leaf--counter-1 { width: var(--leaf-md); right: 2%;  top: 4%;   transform: rotate(24deg); }
-.leaf--counter-2 { width: var(--leaf-sm); left: -2%;  bottom: 8%; transform: rotate(-20deg); }
-.leaf--counter-3 { width: var(--leaf-sm); left: 30%;  top: -2%;  transform: rotate(38deg); }
+   counter-1 is the sprig behind the deck. Its top sits ABOVE the
+   section box (top: -6%) so it appears to grow up out of the cards
+   from behind them — the cards paint over it because the leaves come
+   earlier in the DOM at the same z-index. */
+
+.leaf--counter-1 { width: var(--leaf-sm); left: 56%;  top: -8%;    transform: rotate(16deg); }
+.leaf--counter-2 { width: var(--leaf-sm); left: max(-6%, -80px); bottom: 3%; transform: rotate(26deg); }
 
 
 /* ── The green band ─────────────────────────────────────────────────
@@ -2285,66 +2323,111 @@ h2.on-green, h2.on-dark { color: var(--cream); }
 /* The band's own content has to clear both the ground and the leaves. */
 .dollar > .wrap { position: relative; z-index: 2; }
 
-.leaf--dollar-1 { width: var(--leaf-lg); left: -4%;  top: 6%;    transform: rotate(-24deg); }
-.leaf--dollar-2 { width: var(--leaf-md); left: -1%;  bottom: 4%; transform: rotate(12deg); }
-.leaf--dollar-3 { width: var(--leaf-lg); right: -3%; top: 10%;   transform: rotate(34deg); }
-.leaf--dollar-4 { width: var(--leaf-md); right: 2%;  bottom: 6%; transform: rotate(-18deg); }
-.leaf--dollar-5 { width: var(--leaf-sm); right: 22%; top: -1%;   transform: rotate(8deg); }
+/* Three, in two gestures again: a pair coming in from the left edge
+   and one answering on the right. dollar-1 and dollar-2 overlap for
+   the same reason the hero pair does.
+
+   These two are the BRIGHT and the SPRIG files on purpose — see the
+   note in the markup. The band is the only dark ground on the page and
+   the near-black leaves disappear into it. dollar-3 may be the dark
+   pair because it is placed to straddle the top edge, half on the
+   green and half on the cream above it. */
+
+.leaf--dollar-1 { width: var(--leaf-md); left: -3%;  top: -12%;   transform: rotate(150deg); }
+.leaf--dollar-2 { width: var(--leaf-md); left: -3%;  bottom: -8%; transform: rotate(14deg); }
+.leaf--dollar-3 { width: var(--leaf-lg); right: -6%;  top: 45%;    transform: rotate(30deg); }
 
 .script--dollar-a { left: 12%;  bottom: 12%; }
 .script--dollar-b { right: 12%; top: 30%; text-align: right; }
 
 
 /* ── Board placements ───────────────────────────────────────────────
-   The lightest section on the page — the price table is the whole
-   point, so foliage here stays at the edges and stays small. */
-
-.leaf--board-1 { width: var(--leaf-sm); right: -2%; top: 3%;    transform: rotate(-28deg); }
-.leaf--board-2 { width: var(--leaf-sm); left: -3%;  bottom: 10%; transform: rotate(22deg); }
+   There are none, and that is the rule rather than an omission. See
+   the note in index.html: this section is a 46-line price table, the
+   densest type on the page, and the reference keeps it completely
+   clear. The foliage elsewhere reads as decoration BECAUSE it stops
+   here. The scripts stay — they are words, not ornament. */
 
 .script--board-a { right: 3%;  top: 8%;    text-align: right; }
 .script--board-b { right: 4%;  bottom: 8%; text-align: right; }
 
 
 /* ── Visit placements ───────────────────────────────────────────────
+   One leaf, in the right margin. The section already has a map and the
+   footer under it opens on a full-bleed photograph, so this is only
+   here to carry the motif over that gap.
+
    Nothing is allowed into the map's bottom-left corner: Google's terms
    require their attribution stay visible, and a leaf over it is the
-   same violation as masking it. */
+   same violation as masking it. This one is on the opposite side. */
 
-.leaf--visit-1 { width: var(--leaf-md); left: -4%;  top: 2%;    transform: rotate(-18deg); }
-.leaf--visit-2 { width: var(--leaf-sm); left: 26%;  top: -2%;   transform: rotate(30deg); }
-.leaf--visit-3 { width: var(--leaf-md); right: -3%; bottom: 12%; transform: rotate(20deg); }
+.leaf--visit-1 { width: var(--leaf-md); right: -5%; top: 3%; transform: rotate(28deg); }
 
 .script--visit { right: 4%; bottom: 4%; text-align: right; }
 
 
 /* ── Small screens ──────────────────────────────────────────────────
    Below 760px the margins the leaves live in do not exist, so most of
-   them would land behind text. Four survive, in the corners, and the
+   them would land behind text. Three survive, in the corners, and the
    rest are display:none — which also means the browser never fetches
    them, since they are loading="lazy". The colour fields go too: at
    phone width they cover the whole hero rather than sweeping across it.
+
+   Which three, and where, is set in the mobile foliage block near the
+   foot of this file — this list only says what goes away.
 
    .dollar also drops the fixed attachment here, matching the rule the
    other sections already have — fixed backgrounds repaint every scroll
    frame and are a known jank source on mobile GPUs. */
 
+/* ── The margin runs out at 1100px ──────────────────────────────────
+   Six of the ten leaves hang off a side edge, and every one of them is
+   positioned to stop short of the content column. That column is
+   1200px wide, so above ~1330px there is a real margin either side and
+   they sit in it comfortably. Below that the page falls back to the
+   gutter — 4.5vw, about 50px at 1100px — and the leaves' own bleed is
+   a percentage of the SECTION, not of the margin, so they cross into
+   the text before the gutter does.
+
+   Chasing that with per-breakpoint offsets is what produced the pile
+   of contradictory correction blocks this file used to carry. The
+   honest fix is that the side leaves do not belong at a width with no
+   sides: below 1100px the set drops to the four that hang off the top
+   or sit over a picture, and none of them is anchored to a margin.
+
+   Same 1100px as the counter layout and the deck's SLOT table. Three
+   things now turn on that number. */
+
+@media (max-width: 1099.98px) {
+  .leaf--hero-2, .leaf--hero-3, .leaf--hero-4,
+  .leaf--counter-2,
+  .leaf--dollar-1, .leaf--dollar-3 { display: none; }
+}
+
 @media (max-width: 760px) {
   .dollar { background-attachment: scroll; padding-block: clamp(4rem, 14vw, 6rem); }
 
   .field--hero-b,
-  .leaf--hero-3, .leaf--hero-4, .leaf--hero-5,
-  .leaf--counter-3,
-  .leaf--dollar-3, .leaf--dollar-4, .leaf--dollar-5,
-  .leaf--board-1, .leaf--board-2,
-  .leaf--visit-2, .leaf--visit-3,
+  .leaf--counter-1,
   .script--board-a, .script--board-b,
   .vert--hero { display: none; }
 
   .script--hero     { right: 3%; top: 20%; font-size: 1.15rem; }
   .script--dollar-a { left: 6%; bottom: 4%; font-size: 1.15rem; }
   .script--dollar-b { display: none; }
-  .script--visit    { position: static; margin-top: 1.5rem; text-align: left; }
+  /* padding-inline is not decoration here. This <p> is a direct child of
+     <section class="visit">, NOT of the .wrap inside it — which is fine
+     while it is absolutely positioned, and wrong the moment this rule
+     returns it to the flow: the section has no inline padding of its
+     own, so "Good space, good people" set flush against x=0 and the
+     first glyph of each line was touching the edge of the screen.
+     Measured at 390px: ink ran 0..78px. */
+  .script--visit    {
+    position: static;
+    margin-top: 1.5rem;
+    padding-inline: var(--gutter);
+    text-align: left;
+  }
 }
 
 
@@ -2359,10 +2442,14 @@ h2.on-green, h2.on-dark { color: var(--cream); }
 
    The one real collision it caught: .leaf--counter-1 sat on top of
    "Seven of forty-six. The rest hang on the board", which is grey body
-   text — the exact thing decoration is not allowed to touch. */
+   text — the exact thing decoration is not allowed to touch.
 
-.leaf--counter-1 { right: -1%; top: 34%; transform: rotate(30deg); }
-.leaf--counter-3 { left: 1%;   top: 25%; transform: rotate(38deg); }
+   THE COUNTER FIXES THAT USED TO SIT HERE ARE GONE. They pinned the
+   old leaf set to positions in the old one-column counter, and both
+   have since been replaced — the section is a two-column hero now and
+   the leaves are a different set of files at a different scale. The
+   method above is still the method; the numbers it produced no longer
+   describe anything. Current placements are in the Counter block. */
 
 /* The counter's original pale circles were drawn to carry an otherwise
    empty section. The colour fields and the leaves now do that, and at
@@ -2458,13 +2545,21 @@ h2.on-green, h2.on-dark { color: var(--cream); }
    and the sideways line. Moving the two pieces of text around inside it
    just swapped which leaf they landed on.
 
-   So the leaf moves instead. .leaf--hero-3 goes inboard, where it now
-   overlaps the photograph — which is what the mockup does with it
-   anyway — and that empties the margin from the first leaf's bottom
-   edge all the way down, leaving one clear strip for the gold line and
-   the sideways line to stack in. */
-.leaf--hero-3 { right: 26%; top: 44%; }
-.script--hero { right: 1%;   top: 33%; }
+   Third attempt, and this one gives up on the margin for the gold line
+   rather than shuffling anything else. The hero's foliage is now a
+   CLUSTER in the top-right corner — that is the one gesture the
+   reference is built around and it needs the whole corner, so the
+   third thing in that margin had to leave.
+
+   It goes UNDER the photograph instead: the picture ends at 58% of the
+   hero and the $1 line starts at 62% but only reaches x=42%, which
+   leaves a clear band at x 59–92%, y 59–70% with nothing in it. Set
+   right-aligned there the line reads as a caption to the photograph,
+   which is a better job than it was doing wedged in a 121px margin.
+
+   The sideways line keeps the margin — it is 2 characters wide and
+   sits below the cluster, at y 52–78%. Do not put a leaf there. */
+.script--hero { right: 6%;   top: 60%; text-align: right; }
 .vert--hero   { right: 1.5%; top: 52%; }
 
 
@@ -2492,44 +2587,12 @@ h2.on-green, h2.on-dark { color: var(--cream); }
      .dollar   content 11–89%            → the padding at both ends
      .visit    content 10–96%            → the top strip only          */
 
-@media (max-width: 760px) {
-  .leaf--hero-2,
-  .leaf--counter-1,
-  .leaf--counter-2,
-  .leaf--dollar-1 { display: none; }
-
-  /* Over the photograph, which is the one large area up here carrying
-     no words. */
-  .leaf--hero-1 {
-    right: -12%; top: 27%; left: auto;
-    width: clamp(84px, 26vw, 132px);
-    transform: rotate(-18deg);
-  }
-
-  /* In the band's own top and bottom padding, straddling the wave. */
-  .leaf--dollar-2 {
-    left: -9%; bottom: 1%;
-    width: clamp(78px, 24vw, 122px);
-  }
-
-  .leaf--visit-1 {
-    left: -9%; top: 0.5%;
-    width: clamp(78px, 24vw, 122px);
-  }
-}
-
-/* .leaf--dollar-2 still covered 30% of "One espresso" at 486px: the
-   clear band below the equation is only ~72px tall and the leaf was
-   122px, so anchoring its BOTTOM to the section still pushed its top
-   up into the type. Smaller, and moved to the right-hand side — the
-   equation is left-aligned at this width, so the bottom-right corner
-   is the one genuinely empty part of the band. */
-@media (max-width: 760px) {
-  .leaf--dollar-2 {
-    left: auto; right: -8%; bottom: 1%;
-    width: clamp(68px, 19vw, 96px);
-  }
-}
+/* The three @media blocks that used to sit here — a hide list, a set of
+   phone positions, and a correction to one of them — have been folded
+   into the single mobile foliage block at the foot of this file. They
+   were written against the previous leaf set and had already started
+   contradicting each other (dollar-2 was positioned twice, on opposite
+   sides of the band). One block, one set of numbers. */
 
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -2911,25 +2974,20 @@ body {
      y 76–100%   left of x 42%      (under the arrows)
      y 87–100%   across the bottom  (under the dots)
 
-   .leaf--counter-1 was covering 62% of the Iced Matcha card and
-   .leaf--counter-3 was sitting across "The ones people come back for."
-   Both are now in the bands above. Because .counter is overflow-y
-   visible, the top one runs up into the hero and the bottom one tucks
-   under the green band, which is the stitching doing its job. */
+   The leaf placements that lived here are gone with the set they were
+   written for. The measured free bands above still hold and are still
+   the reason the current counter-1 hangs off the TOP edge (it runs up
+   into the hero) and counter-2 sits at the bottom-left, so the notes
+   are kept even though the numbers under them are not.
 
-.leaf--counter-1 { left: 30%; right: auto; top: -14%; bottom: auto; transform: rotate(28deg); }
-.leaf--counter-2 { left: 1%;  right: auto; top: auto; bottom: 1%;   transform: rotate(-22deg); }
-.leaf--counter-3 { left: auto; right: -4%; top: auto; bottom: -6%;  transform: rotate(34deg); }
+   Because .counter is overflow-y visible, a leaf anchored above the
+   section's top edge runs up into the hero rather than being clipped —
+   that is the stitching doing its job, not a mistake. */
 
 /* The old pale circles are redundant now the sweeps run through this
    section, and at any strength they read as bubbles next to a band. */
 .blob-counter-a,
 .blob-counter-b { display: none; }
-
-/* leaf--counter-1 at left:30% clipped the corner of the first card,
-   which is exactly where its "Frappé" tag sits. Pulled inboard so it
-   hangs over the gutter between the two columns instead. */
-.leaf--counter-1 { left: 19%; }
 
 
 /* ── Contrast corrections ───────────────────────────────────────────
@@ -3123,3 +3181,540 @@ body {
    because the sections are overflow-x: clip. Letting it break is free and
    changes nothing at any size where it already fits. */
 .fact dd { overflow-wrap: anywhere; }
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   THE COUNTER, SIDE BY SIDE ALL THE WAY DOWN — 2026-09-06
+
+   The two-column treatment used to start at 1100px and below that the
+   section fell back to a stack: heading, lede, arrows, then a 380px
+   deck underneath. On a phone that ran 781px tall, and most of it was
+   the gap between the arrows and the cards — the deck's own box is
+   sized off vw, so the narrower the screen the more empty room it
+   reserved around a card that was not getting any bigger.
+
+   So the hero arrangement now runs the whole way down: words in the
+   left column, deck in the right, at every width. What changes with
+   the breakpoint is only HOW MUCH ROOM THE DECK ASKS FOR and how the
+   card is drawn inside it — not whether the two sit together.
+
+   Three things this depends on, all of them already true:
+
+   1. The deck is a FAN below 1100px (script.js SLOT = FAN). One card
+      in front, one peeking. A three-card ROW would never fit a phone's
+      right-hand column — which is exactly why the 1100px switch in
+      script.js exists, and why it stays where it is. Do not raise this
+      media query past 1099px without moving that one too.
+
+   2. .counter is overflow-x: clip, so the peeking card may run off the
+      right edge and be trimmed rather than widen the page. That bleed
+      is the point: a card cut by the screen edge reads as "there are
+      more of these", which is the job the dots and arrows are also
+      doing.
+
+   3. script.js positions cards in PERCENTAGES of the card's own width,
+      not pixels. Shrinking .deck therefore shrinks the whole
+      arrangement — fan spread included — with no JS change.
+   ─────────────────────────────────────────────────────────────────── */
+
+/* 1099.98, not 1099, and this is not a nicety. The counterpart rule
+   is min-width: 1100px, and a viewport can land BETWEEN the two: at
+   browser zoom, on a fractional device pixel ratio, or on a 1099px
+   window that Chrome measures as 1099.5. At that width max-width:1099
+   is false and min-width:1100 is false, so the section got NEITHER
+   grid — .counter fell back to display:block and the layout came apart
+   into a stack. Caught at exactly 1099px in Chrome, where both queries
+   reported false. Any 'max: n / min: n+1' pair on this page has the
+   same hole; use the .98 form. */
+@media (max-width: 1099.98px) {
+  .counter {
+    display: grid;
+    /* The deck column is a fraction, not a fixed width, so the split
+       holds its proportion from 320px to 1099px instead of collapsing
+       the words at one end and stranding them at the other.
+
+       NOT 50/50. The text side only has to hold a three-word heading
+       and two lines of lede — it reads fine at ~44% and every point it
+       gives up goes to the card, which is the thing people actually
+       came to look at. The heading takes the space it needs by being
+       set tighter (below), not by taking a wider column. */
+    grid-template-columns: minmax(0, .78fr) minmax(0, 1fr);
+    grid-template-areas:
+      "head deck"
+      "dots dots";
+    align-items: center;
+    column-gap: clamp(.6rem, 2.5vw, 1.6rem);
+    padding-inline: var(--gutter);
+  }
+
+  /* Undoes the 1fr auto + right-aligned .counter-side set at 860px.
+     That pairing was for a full-width head above the deck; in a
+     column half the page wide it would set the lede ragged-left
+     against a heading that is ragged-right. */
+  /* The gap here is the one between the LABEL+HEADING group and the
+     lede under it, and it is deliberately small. The heading is the
+     loud thing in this column and it needs air ABOVE it and inside it
+     (line-height, further down); the subtitle belongs tucked under it
+     as a caption, not floating in the middle of the column. Closing
+     this up is also what buys the vertical room the narrower column
+     costs — the heading now wraps to three lines instead of two. */
+  .counter-head {
+    grid-area: head;
+    grid-template-columns: 1fr;
+    align-items: start;
+    align-self: center;
+    width: auto;
+    max-width: none;
+    margin-inline: 0;
+    margin-bottom: 0;
+    gap: clamp(.3rem, 1.1vw, .6rem);
+  }
+
+  /* The label sits right on top of the heading it introduces. */
+  .counter-head .label { margin-bottom: .35rem; }
+
+  .counter-side {
+    display: block;
+    text-align: left;
+    justify-items: start;
+  }
+  .counter-side .lede {
+    max-width: none;
+    margin-left: 0;
+  }
+
+  /* The hard break was written for a heading with the whole page to
+     run across. In a column this narrow the line wraps on its own, and
+     forcing a second break on top of that gives four ragged lines
+     where three would do. */
+  .counter-head h2 br { display: none; }
+
+  .stage {
+    grid-area: deck;
+    display: flex;
+    max-width: none;
+    /* Was clamp(380px, 88vw, 460px) — a vw height for a box that is no
+       longer a share of the viewport. The deck sets its own height now. */
+    height: auto;
+    margin: 0;
+    /* NOT bled into the right gutter, though it was at one point and
+       the reason it is not is worth keeping. Pulling the stage over
+       the gutter bought the card ~20px of width, and the price was the
+       peek: with the front card's right edge ON the screen edge, the
+       leading card behind it — offset 52% of a card's width — lands
+       entirely off screen, so the deck reads as one lonely card that
+       happens to be cropped. Leaving the gutter alone puts the front
+       card's edge at the content edge and lets the leading card show
+       as a ~20px sliver in the gutter, which is the whole 'there are
+       more of these' cue the arrows and dots are also giving. The
+       column above was widened instead to win the width back. */
+  }
+
+  /* Fills its column. The HEIGHT is set outright rather than by an
+     aspect ratio, and that is the whole lesson of this layout: at
+     390px the column is ~190px wide, and 190 x (380/290) is a 249px
+     card. The card's fixed parts — the 2.55rem badge inset, two lines
+     of name, three of description, the price rule — already come to
+     ~200px, so .dcard__shot (flex: 1, and the only part that gives)
+     was squeezed to LITERALLY ZERO and the drink photograph vanished.
+     A card with no drink on it is not a smaller card, it is a broken
+     one.
+
+     So the card keeps a height that its contents actually fit in and
+     gets narrower rather than shorter as the screen shrinks. It ends
+     up a taller, slimmer card on a phone than on a desktop, which is
+     the correct direction for a portrait screen anyway. */
+  .deck {
+    width: 100%;
+    height: clamp(302px, 42vw + 148px, 380px);
+  }
+
+  .dots {
+    grid-area: dots;
+    margin-top: clamp(.9rem, 3vw, 1.5rem);
+  }
+}
+
+
+/* ── The counter at phone width ─────────────────────────────────────
+   The split above holds its proportion all the way down, which means
+   below ~700px both columns are genuinely narrow — ~175px each on a
+   390px screen. Type cut for a full-width measure does not survive
+   that: the h2 was setting three words to a line and the card's name
+   and description were running past the bottom of the card.
+
+   Everything here is a size, not a layout. The arrangement is the one
+   set above; this only makes the words fit inside it. */
+
+@media (max-width: 700px) {
+  .counter-head h2 {
+    font-size: clamp(1.5rem, 6.4vw, 2.05rem);
+    line-height: 1.04;
+    letter-spacing: -.02em;
+  }
+  .counter-head .lede {
+    font-size: .92rem;
+    line-height: 1.45;
+  }
+  /* .66rem, and it is a floor rather than a fitted size. The first cut
+     of this block took the three uppercase labels down to .54–.62rem
+     to fit the narrow column, which worked and was wrong: tracked-out
+     caps under 10px stop being words and become a texture. Measured at
+     8.6px for the card tag. These are the smallest that still read,
+     and they still fit at 320px, where the column is narrowest. */
+  .counter-head .label { font-size: .66rem; }
+
+  /* The hint and the two buttons, tightened so the pair still sits on
+     one line in a 175px column. Some of the width that buys comes from
+     the tracking rather than the type size, for the reason above. The
+     buttons keep a 44px hit area — that is the floor, not a
+     preference. */
+  .deckctl__hint {
+    font-size: .63rem;
+    letter-spacing: .1em;
+  }
+  .deckctl { gap: .5rem; }
+
+  /* Card interior. The shot keeps the largest share it can: it is the
+     only part of the card a passer-by reads at a glance. */
+  .dcard { padding: 2.15rem .85rem .95rem; }
+  .dcard__name { font-size: 1.12rem; }
+  .dcard__desc {
+    margin-top: .3rem;
+    font-size: .72rem;
+    line-height: 1.35;
+  }
+  .dcard__foot {
+    margin-top: .6rem;
+    padding-top: .55rem;
+  }
+  .dcard__price { font-size: 1.1rem; }
+  .dcard__tag {
+    top: .7rem;
+    left: .85rem;
+    font-size: .62rem;
+  }
+}
+
+
+/* ── The deck column, once there is room ────────────────────────────
+   The proportional split above is right for a phone, where both
+   columns have to give ground together. Carried up to 1099px it is
+   not: the deck column keeps taking its share of a widening page, and
+   because .deck's height is capped at 380px the card just gets WIDER —
+   499 x 380 at 1099px, measured. These cards are portrait (290 x 380
+   native); a landscape one is not a bigger card, it is a different
+   card, and the drink inside it floats in the middle of a field of
+   tint.
+
+   So above 760px the deck stops growing with the page and the words
+   take the extra room instead. The cap is 320px — a little over the
+   native 290 — and .stage anchors the deck to the RIGHT of its track,
+   so the slack opens up between the text and the card rather than
+   between the card and the screen edge. That keeps the leading card's
+   peek where it belongs: near the edge, where it reads as more cards
+   waiting rather than as a gap in the middle of the section. */
+
+@media (min-width: 761px) and (max-width: 1099.98px) {
+  .counter { grid-template-columns: minmax(0, 1fr) minmax(0, .62fr); }
+
+  .stage { justify-content: flex-end; }
+
+  .deck {
+    max-width: 320px;
+    margin-left: auto;
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   FEWER, AND OUT OF THE WAY — mobile foliage, 2026-09-06
+
+   Three leaves survive to phone width out of the eighteen on the desk-
+   top page, which was already the intent. What was NOT intended is
+   where two of them landed once the type around them reflowed:
+
+     leaf--hero-1   covered 89% of the gold "More than coffee"
+     leaf--visit-1  covered 15% of "Good space, good people"
+
+   Both were measured at 390px, and the hero one is why that piece of
+   handwriting is simply missing from the phone layout — it is behind a
+   leaf. Neither is a sizing problem, so neither is fixed by shrinking:
+   they are both sitting in the one part of their section that has ink
+   in it.
+
+   The rule these follow — the same one the desktop placements follow —
+   is that a leaf goes in a margin or over a photograph, never over
+   type. Sizes come down a step as well, which is the "a bit less leaf"
+   half of the request; the count stays at three, because at two the
+   phone layout stops looking like the same site as the desktop one.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* The four that survive 1100px. Both of these were anchored to a LEFT
+   margin that does not exist below it, so they swap sides: the green
+   band's equation and the visit section's handwriting are both
+   left-aligned at these widths, which leaves the right-hand edge as
+   the genuinely empty one in each. */
+@media (max-width: 1099.98px) {
+  .leaf--dollar-2 {
+    left: auto; right: -7%; top: auto; bottom: 2%;
+    transform: rotate(18deg);
+  }
+
+  .leaf--visit-1 {
+    right: -8%; top: 2%;
+    transform: rotate(24deg);
+  }
+}
+
+@media (max-width: 760px) {
+  /* HERO — over the photograph, below the handwriting. The gold sits at
+     33–37% of the hero and the picture runs to 53%, so this drops into
+     the band between the two. The photograph is the only large area up
+     here carrying no words, and at this width the hero has no margin
+     left to hang anything in. */
+  .leaf--hero-1 {
+    right: -6%; top: 40%; left: auto;
+    width: clamp(76px, 23vw, 116px);
+    transform: rotate(-20deg);
+  }
+
+  /* Anchoring the leaf's BOTTOM to the section and keeping it small is
+     what stops it climbing into "One espresso", which an earlier,
+     larger version covered 30% of. */
+  .leaf--dollar-2 {
+    right: -8%; bottom: 1%;
+    width: clamp(64px, 18vw, 92px);
+  }
+
+  .leaf--visit-1 {
+    right: -11%; top: 1%;
+    width: clamp(72px, 21vw, 108px);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════
+   THE SHOPFRONT BAND — 2026-09-06
+
+   Full-bleed photograph across the top of the footer, with the footer's
+   own green picking up where it ends.
+
+   Two things make it a band rather than a picture sitting in a box:
+
+   1. It is the FIRST child of .site-foot, and the section's top padding
+      moves onto .foot-in instead. Left on the footer, that padding put
+      a strip of green above the photograph and the whole thing read as
+      an inset image with a margin.
+
+   2. It fades out at the bottom into --green-dark rather than stopping
+      on a hard edge. The photograph is a night shot whose lower third
+      is already close to the footer's green, so the gradient lands on
+      colours that were nearly touching anyway — the seam disappears
+      instead of being covered up.
+
+   The crop is height-driven, not aspect-driven: the source is 16:9,
+   and 16:9 across a 390px phone is a 219px letterbox with the shopfront
+   too small to read. Fixing a MINIMUM height and letting object-fit
+   crop the sides keeps the doorway and the signage at a legible size
+   all the way down. object-position sits slightly above centre because
+   the bottom of the frame is pavement.
+   ═══════════════════════════════════════════════════════════════════ */
+
+.site-foot { padding-block: 0 1.5rem; }
+
+.foot-shot {
+  position: relative;
+  z-index: 1;   /* over .deco-bean-d and .deco-drops-b, which are absolute */
+  margin: 0 0 clamp(2.4rem, 5vw, 4rem);
+}
+
+.foot-shot img {
+  display: block;
+  width: 100%;
+  height: clamp(260px, 34vw, 500px);
+  object-fit: cover;
+  /* 30%, not centre. The source is 1672x941 and the band is far
+     shallower than that, so most of the frame's HEIGHT is discarded on
+     a wide screen — at 1440px only about half of it survives. Centring
+     that window put the cut straight through the illuminated
+     'THE BEANERY CAFE' sign, which is the one part of the photograph
+     that identifies the place. Biasing the window upward keeps the
+     signage and the lit interior and throws away pavement instead.
+
+     This has no effect below ~700px: there the forced height is
+     GREATER than the natural height of the image at that width, so
+     cover scales up and crops the sides rather than the top and
+     bottom. */
+  object-position: center 30%;
+}
+
+/* The fade. A pseudo-element rather than a gradient on the figure
+   itself, because the <img> paints over the figure's own background. */
+.foot-shot::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 38%;
+  background: linear-gradient(to bottom,
+    rgba(30, 68, 35, 0) 0%,
+    rgba(30, 68, 35, .72) 62%,
+    var(--green-dark) 100%);
+  pointer-events: none;
+}
+
+/* The top padding the footer gave up, handed to the content instead so
+   the photograph can reach the section's top edge. */
+.foot-in { padding-top: 0; }
+
+@media (max-width: 760px) {
+  /* Taller share of a narrow screen. At 390px the 16:9 source would
+     otherwise be a 219px strip; this keeps the shopfront readable
+     while still cropping to the middle of the frame. */
+  .foot-shot img { height: clamp(230px, 62vw, 300px); }
+  .foot-shot { margin-bottom: clamp(1.8rem, 6vw, 2.6rem); }
+}
+
+
+/* ── The dots, as something you can actually hit ────────────────────
+   They were 8x8 px. That is the DOT, and the dot was also the button,
+   so the whole target was 8x8 — a third of the 24x24 minimum, on a
+   control that sits in the counter's most reachable corner on a phone.
+   The arrows next to them are 44px; the dots were not close.
+
+   The dot stays 8px. What changes is that it is now drawn by a
+   pseudo-element inside a 26px button, so the target grows and the
+   design does not move. The negative inline margin pulls the boxes
+   back together until the dots sit 8px apart again, exactly as they
+   did — the boxes overlap by 10px doing it, which is a real trade and
+   the right way round: the ambiguous strip is between two dots that do
+   the same KIND of thing (jump to a card), so the worst case of a
+   sloppy tap is landing on card 3 instead of card 4, not silence.
+
+   26px rather than 24px because .is-on grows to a 26px pill, and the
+   box has to hold it. */
+
+.dots { gap: 0; }
+
+.dots button {
+  width: 26px;
+  height: 26px;
+  margin-inline: -5px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: none;
+}
+
+.dots button::before {
+  content: "";
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--cream-3);
+  transition: width .25s var(--ease), background-color .25s var(--ease);
+}
+
+.dots button.is-on {
+  width: 26px;
+  background: none;
+}
+.dots button.is-on::before {
+  width: 26px;
+  border-radius: 999px;
+  background: var(--green-deep);
+}
+
+
+/* ── Footer links, tall enough to hit ───────────────────────────────
+   Six links at .9rem sat 23px tall — one pixel under the 24px target
+   minimum, and stacked 0.6rem apart in a column, which is the shape
+   most likely to get a mis-tap on a phone.
+
+   The padding goes on the link and comes back off the column's gap, so
+   each target grows to ~29px while the list keeps the spacing it was
+   drawn with. width: fit-content stays: the target should be the width
+   of the WORD, not of the column, or "Hours" would take a tap from
+   halfway across the footer. */
+
+.foot-nav div { gap: .35rem; }
+
+.foot-nav a { padding-block: .16rem; }
+
+/* Same one pixel, same reason. This one is a single link in a
+   definition list rather than a nav column. */
+.fact dd a { display: inline-block; padding-block: .16rem; }
+
+
+/* ── "More than coffee", somewhere it can be read ───────────────────
+   At phone width this sat at top: 20%, which put it at x 316–386 on a
+   390px screen — and the hero photograph runs x 20–370 through the
+   same band. The picture is later in the DOM, so it painted over the
+   handwriting and left about 16px of letter-tails sticking out past
+   its right edge. Not a leaf problem: moving the leaf off it (above)
+   only revealed that the photograph was covering it too.
+
+   The hero has exactly one region below the fold with no ink in it and
+   no picture over it: the strip beside the two buttons, which are
+   left-aligned and stop at x=231. The handwriting goes there, in the
+   right margin at 87%, and reads at full size for the first time on a
+   phone. */
+
+@media (max-width: 760px) {
+  .script--hero {
+    right: 4%;
+    top: 87%;
+    text-align: right;
+  }
+}
+
+
+/* ── The no-JavaScript counter ──────────────────────────────────────
+   The two-column arrangement is only right when the deck is a DECK —
+   one card in front and the rest behind it. With no JavaScript there
+   is no deck: .stage never gets .is-live, and the block up at
+   ".stage:not(.is-live)" unstacks the cards into a plain wrapped row
+   of all five. Five cards do not go in a half-width column; they came
+   out as a single 174px-wide ribbon down the right-hand side with the
+   heading pushed off the top.
+
+   So when the stage is not live the section drops back to one column
+   and the row gets the whole page, which is what that fallback was
+   written against.
+
+   :has() is doing the work because the condition lives on a
+   DESCENDANT of the element being restyled. If it is ever unsupported
+   the page does not break — it degrades to the squeezed column, which
+   is still readable, and only for someone who has both an old browser
+   and JavaScript off. */
+
+.counter:has(.stage:not(.is-live)) {
+  display: block;
+  padding-inline: var(--gutter);
+}
+
+.counter:has(.stage:not(.is-live)) .counter-head {
+  margin-bottom: clamp(1.8rem, 4vw, 2.6rem);
+}
+
+/* Undoes the cap and the right-hand anchoring from the 761–1099 block:
+   both are about a single card sitting in a column, and this is a row
+   of five sitting in a section. */
+.stage:not(.is-live) .deck {
+  max-width: none;
+  margin-left: 0;
+}
+
+/* The arrows and the swipe hint go with it. There is a rule further up
+   — ".stage:not(.is-live) .deckbtn { display: none }" — that was
+   written to do this, and it stopped working the day the arrows moved
+   out of .stage and into .counter-head: the selector still describes
+   where they used to live. With no JavaScript they are two buttons
+   wired to nothing, above a hint telling you to swipe a deck that is
+   not there. */
+.counter:has(.stage:not(.is-live)) .deckctl { display: none; }
