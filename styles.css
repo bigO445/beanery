@@ -3227,53 +3227,64 @@ body {
    reported false. Any 'max: n / min: n+1' pair on this page has the
    same hole; use the .98 form. */
 @media (max-width: 1099.98px) {
+  /* THREE ROWS, NOT TWO. The heading used to share the left column
+     with the lede and the arrows, all three stacked beside the deck.
+     That column was 113-158px wide on a phone, which is not a measure
+     — it is a gutter with words in it, and the heading broke across
+     four lines in it no matter how the type was sized.
+
+     So the heading comes OUT of the column and takes the full content
+     width as its own row. Only the lede and the arrows stay beside the
+     deck, and they are the two things that genuinely do not mind being
+     narrow: one short sentence and a pair of buttons. The column they
+     sit in can then be much narrower than a heading would ever allow,
+     and all of that width goes to the card.
+
+     The heading also gets its normal size back — the h2 rule at the
+     top of this file, unmodified — because a full-width row is exactly
+     what that scale was drawn for. */
   .counter {
     display: grid;
-    /* The deck column is a fraction, not a fixed width, so the split
-       holds its proportion from 320px to 1099px instead of collapsing
-       the words at one end and stranding them at the other.
-
-       NOT 50/50. The text side only has to hold a three-word heading
-       and two lines of lede — it reads fine at ~44% and every point it
-       gives up goes to the card, which is the thing people actually
-       came to look at. The heading takes the space it needs by being
-       set tighter (below), not by taking a wider column. */
-    grid-template-columns: minmax(0, .78fr) minmax(0, 1fr);
+    /* The floor is not decoration: the two 48px arrows plus their gap
+       need 107px, and a pure fraction drops below that around 340px,
+       which would push a button out of the column. */
+    grid-template-columns: minmax(112px, .55fr) minmax(0, 1fr);
     grid-template-areas:
-      "head deck"
-      "dots dots";
+      "title title"
+      "side  deck"
+      "dots  dots";
     align-items: center;
     column-gap: clamp(.6rem, 2.5vw, 1.6rem);
+    row-gap: clamp(.9rem, 3.2vw, 1.7rem);
     padding-inline: var(--gutter);
   }
 
-  /* Undoes the 1fr auto + right-aligned .counter-side set at 860px.
-     That pairing was for a full-width head above the deck; in a
-     column half the page wide it would set the lede ragged-left
-     against a heading that is ragged-right. */
-  /* The gap here is the one between the LABEL+HEADING group and the
-     lede under it, and it is deliberately small. The heading is the
-     loud thing in this column and it needs air ABOVE it and inside it
-     (line-height, further down); the subtitle belongs tucked under it
-     as a caption, not floating in the middle of the column. Closing
-     this up is also what buys the vertical room the narrower column
-     costs — the heading now wraps to three lines instead of two. */
-  .counter-head {
-    grid-area: head;
-    grid-template-columns: 1fr;
-    align-items: start;
-    align-self: center;
-    width: auto;
-    max-width: none;
-    margin-inline: 0;
-    margin-bottom: 0;
-    gap: clamp(.3rem, 1.1vw, .6rem);
-  }
+  /* display:contents dissolves this box so its two children become grid
+     items of .counter directly. That is what lets the heading and the
+     lede land in different ROWS while still being siblings in the
+     markup — no wrapper moved, no duplicate heading.
+
+     It also drops the .wrap width this element carries, which is
+     correct and not a loss: .counter's own padding-inline is the same
+     gutter, so the content edge does not move. */
+  .counter-head { display: contents; }
+
+  .counter-title { grid-area: title; }
 
   /* The label sits right on top of the heading it introduces. */
-  .counter-head .label { margin-bottom: .35rem; }
+  .counter-title .label { margin-bottom: .35rem; }
 
+  /* align-self:start, against the grid's align-items:center. The deck
+     is 300-400px tall and it sets the height of this row; left centred,
+     the lede floated in the middle of that space with ~100px of nothing
+     between it and the heading it belongs to, reading as an unrelated
+     caption rather than as the line under the title. Pinned to the top
+     of the row it sits directly under the heading, and the empty space
+     collects at the BOTTOM of the column where it is just margin beside
+     the lower half of the card. */
   .counter-side {
+    grid-area: side;
+    align-self: start;
     display: block;
     text-align: left;
     justify-items: start;
@@ -3282,12 +3293,6 @@ body {
     max-width: none;
     margin-left: 0;
   }
-
-  /* The hard break was written for a heading with the whole page to
-     run across. In a column this narrow the line wraps on its own, and
-     forcing a second break on top of that gives four ragged lines
-     where three would do. */
-  .counter-head h2 br { display: none; }
 
   .stage {
     grid-area: deck;
@@ -3347,14 +3352,21 @@ body {
    set above; this only makes the words fit inside it. */
 
 @media (max-width: 700px) {
-  .counter-head h2 {
-    font-size: clamp(1.5rem, 6.4vw, 2.05rem);
-    line-height: 1.04;
-    letter-spacing: -.02em;
-  }
-  .counter-head .lede {
-    font-size: .92rem;
-    line-height: 1.45;
+  /* NO font-size override on the heading any more, and that is the
+     point of the layout change above. Every previous version of this
+     block shrank the h2 to survive a 113-158px column — first to
+     1.5rem, then to 1.16rem — and each one traded presence for fit.
+     On its own full-width row the heading needs neither: the site's
+     ordinary h2 scale sets it on two lines at every phone width, on
+     the hard break the copy was written for, at the same size as
+     "What a dollar still buys." further down the page. */
+
+  /* The lede DOES stay small, because it is the one thing still in the
+     narrow column — which is what it is there to do: hold the words in
+     as little width as they will go, so the card gets the rest. */
+  .counter-side .lede {
+    font-size: .8rem;
+    line-height: 1.4;
   }
   /* .66rem, and it is a floor rather than a fitted size. The first cut
      of this block took the three uppercase labels down to .54–.62rem
@@ -3364,16 +3376,16 @@ body {
      and they still fit at 320px, where the column is narrowest. */
   .counter-head .label { font-size: .66rem; }
 
-  /* The hint and the two buttons, tightened so the pair still sits on
-     one line in a 175px column. Some of the width that buys comes from
-     the tracking rather than the type size, for the reason above. The
-     buttons keep a 44px hit area — that is the floor, not a
-     preference. */
-  .deckctl__hint {
-    font-size: .63rem;
-    letter-spacing: .1em;
-  }
-  .deckctl { gap: .5rem; }
+  /* "Swipe to explore" comes off on a phone. Tracked-out uppercase in a
+     118px column broke it across THREE lines at 320px, and shrinking it
+     to fit would have put it back under the 10px floor this file keeps
+     for caps. It is also the least necessary line on the page here:
+     swiping is the native gesture on a touch screen, the two arrows
+     stay, and the dots underneath already say there is more than one
+     card. It returns above 700px, where the column is wide enough to
+     hold it on one line and where a mouse actually needs the prompt. */
+  .deckctl__hint { display: none; }
+  .deckctl { gap: .5rem; margin-top: clamp(.9rem, 3vw, 1.3rem); }
 
   /* Card interior. The shot keeps the largest share it can: it is the
      only part of the card a passer-by reads at a glance. */
@@ -3416,7 +3428,11 @@ body {
    waiting rather than as a gap in the middle of the section. */
 
 @media (min-width: 761px) and (max-width: 1099.98px) {
-  .counter { grid-template-columns: minmax(0, 1fr) minmax(0, .62fr); }
+  /* The card stops growing here — see the cap below — so past ~760px
+     the extra width has to go somewhere that can use it. The lede
+     column takes it and stops being a narrow strip, because on a
+     tablet there is no longer any need to squeeze it. */
+  .counter { grid-template-columns: minmax(0, 1fr) minmax(0, .78fr); }
 
   .stage { justify-content: flex-end; }
 

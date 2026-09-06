@@ -470,14 +470,18 @@
       </svg>
 
       <div class="wrap counter-head">
-        <div>
+        <!-- This wrapper is CLASSED, not an anonymous div, because below
+             1100px .counter-head becomes display:contents and this box is
+             promoted to a grid item in its own right — it needs a name to
+             be placed. -->
+        <div class="counter-title">
           <p class="label">On the counter</p>
-          <!-- The space before the <br> is load-bearing. Below 1100px the
-               heading sits in a half-width column and styles.css hides this
-               break so the line can wrap on its own; with no space in the
-               source, "people" and "come" would then set as "peoplecome".
-               A browser drops trailing whitespace at a line break, so the
-               space costs nothing at the widths where the break still shows. -->
+          <!-- The space before the <br> is load-bearing: with no space in
+               the source, any width that drops the break would set
+               "people" and "come" as "peoplecome". A browser discards
+               trailing whitespace at a line break, so it costs nothing at
+               the widths where the break does show — which is now all of
+               them, since the heading spans the full width everywhere. -->
           <h2 class="reveal">The ones people <br>come back for.</h2>
         </div>
         <div class="counter-side">
