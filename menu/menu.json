@@ -413,7 +413,14 @@
           "posId": "prod_1787863617451_qx5pcp_fresh-refreshing-pomegranate-juice"
         },
         {
-          "name": "Mate Tea",
+          "name": "Tea",
+          "price": 500,
+          "image": "tea.webp",
+          "badge": "New",
+          "posId": "prod_1787863617451_qx5pcp_fresh-refreshing-tea"
+        },
+        {
+          "name": "Mate",
           "price": 5000,
           "image": "mate-tea.webp",
           "badge": "New",
