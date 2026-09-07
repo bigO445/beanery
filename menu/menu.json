@@ -421,7 +421,7 @@
         },
         {
           "name": "Mate",
-          "price": 5000,
+          "price": 500,
           "image": "mate-tea.webp",
           "badge": "New",
           "posId": "prod_1787863617451_qx5pcp_fresh-refreshing-mate-tea"
