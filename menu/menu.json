@@ -397,6 +397,27 @@
           "image": "golden-lemon.webp",
           "badge": "New",
           "posId": "prod_1787863617451_qx5pcp_fresh-refreshing-golden-lemon"
+        },
+        {
+          "name": "Fresh Carrot Juice",
+          "price": 5000,
+          "image": "carrot-juice.webp",
+          "badge": "New",
+          "posId": "prod_1787863617451_qx5pcp_fresh-refreshing-carrot-juice"
+        },
+        {
+          "name": "Fresh Pomegranate Juice",
+          "price": 5000,
+          "image": "pomegranate-juice.webp",
+          "badge": "New",
+          "posId": "prod_1787863617451_qx5pcp_fresh-refreshing-pomegranate-juice"
+        },
+        {
+          "name": "Mate Tea",
+          "price": 5000,
+          "image": "mate-tea.webp",
+          "badge": "New",
+          "posId": "prod_1787863617451_qx5pcp_fresh-refreshing-mate-tea"
         }
       ]
     },
