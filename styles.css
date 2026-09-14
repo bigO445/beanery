@@ -429,8 +429,9 @@ h2.on-green, h2.on-dark { color: var(--cream); }
   margin-right: auto;
 }
 /* ── Visual rhymes ──────────────────────────────────────────────────
-   Taken from the ACTUAL logo (#i-logo / images/logo.svg), now that it
-   has been rebuilt as vector. An earlier pass rhymed on a guess at the
+   Written for the first, monoline redraw of the logo. The mark is now the
+   owner's own vector (2026-09-14): it keeps the broken stem (a), but it
+   is FILLED, so (b)-(d) below describe the old drawing, not this one. An earlier pass rhymed on a guess at the
    B's shape and got one of them backwards — see rhyme 2.
 
    What is actually distinctive about the mark, in order:
@@ -472,25 +473,14 @@ h2.on-green, h2.on-dark { color: var(--cream); }
   border-radius: 5px 15px 15px 5px;
 }
 
-/* The real monogram, inherited in gold from .brand-mark's `color`.
-   stroke-width is set HERE, on the instance: a <use> clones its symbol
-   into a shadow tree that descendant selectors cannot reach, and only
-   inherited properties cross — stroke and stroke-width do, so this
-   lands on the cloned geometry. Same rule as every other symbol in
-   this file. */
+/* The monogram, filled with .brand-mark's gold `color`. The size keeps
+   the mark's own 504.47:658.02 proportion, so it is never squashed. */
 .brand-logo {
   width: 17px;
-  height: 21px;
+  height: 22px;
   display: block;
-  fill: none;
-  stroke: currentColor;
-  /* The symbol's viewBox is 50.7 units wide and it renders at 17px,
-     so the mark's native 4.6-unit monoline lands at ~1.5px. Set in
-     viewBox units, not px — the browser scales it with the shape,
-     which is what keeps it the same logo at any size. */
-  stroke-width: 4.6;
-  stroke-linecap: butt;
-  stroke-linejoin: round;
+  fill: currentColor;
+  stroke: none;
 }
 .brand-name { display: grid; line-height: 1.05; }
 .brand-word {
@@ -1375,7 +1365,7 @@ h2.on-green, h2.on-dark { color: var(--cream); }
 .blob-visit {
   bottom: -10%; left: -11%;
   width: min(30vw, 330px);
-  aspect-ratio: 50.7 / 63.3;
+  aspect-ratio: 504.47 / 658.02;
   color: var(--green);
   opacity: .16;
   transform: rotate(-13deg);
@@ -3042,11 +3032,8 @@ body {
 
 
 /* ── The monogram watermark ─────────────────────────────────────────
-   stroke-width is in the symbol's own viewBox units (50.7 wide), which
-   is how .brand-logo does it too: 4.6 units is the mark's native
-   monoline, so it stays the same drawing whether it renders at 17px in
-   the header or 215px here. A px stroke-width would go spidery at this
-   size and clot at that one. */
+   The filled mark, coloured by the instance's `color` and kept faint by
+   its opacity. Its box keeps the mark's own proportion. */
 
 .wmark {
   position: absolute;
@@ -3054,12 +3041,9 @@ body {
   display: block;
   pointer-events: none;
   user-select: none;
-  aspect-ratio: 50.7 / 63.3;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 4.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+  aspect-ratio: 504.47 / 658.02;
+  fill: currentColor;
+  stroke: none;
 }
 
 /* Left margin of the green band, vertically centred on it — where the

@@ -320,11 +320,10 @@ body::after {
   margin-right: auto;
 }
 
-/* 20:25 matches the monogram's own 50.7:63.3 ratio — the old 22:25 box
-   letterboxed it and shaved a pixel off each side */
+/* 20:26 keeps the monogram's own 504.47:658.02 proportion */
 .mhead__b {
   width: 20px;
-  height: 25px;
+  height: 26px;
   color: var(--gold-soft);
 }
 
