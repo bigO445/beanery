@@ -1589,6 +1589,17 @@ h2.on-green, h2.on-dark { color: var(--cream); }
   color: rgba(244, 239, 228, .6);
 }
 
+/* the studio credit, worded and styled like the one on the menu page.
+   --gold-soft, not --gold: this is small text on the dark footer */
+.foot-credit a {
+  color: var(--gold-soft);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(239, 206, 122, .4);
+  padding-bottom: .08rem;
+  transition: border-color .2s ease;
+}
+.foot-credit a:hover { border-bottom-color: var(--gold-soft); }
+
 
 /* ── Motion ─────────────────────────────────────────────────────────
    Headings and ledes only. Body copy that fades in is body copy you
