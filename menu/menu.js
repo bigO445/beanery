@@ -132,7 +132,10 @@
     prev.addEventListener('click', () => track.scrollBy({ left: -step(), behavior: 'smooth' }));
     next.addEventListener('click', () => track.scrollBy({ left: step(), behavior: 'smooth' }));
     track.addEventListener('scroll', updateArrows, { passive: true });
+    // resize covers rotating and unfolding; the search can also shrink a row
+    // until it no longer scrolls, and that changes no size this would see
     window.addEventListener('resize', updateArrows);
+    $('#q')?.addEventListener('input', () => requestAnimationFrame(updateArrows));
     updateArrows();
   });
 

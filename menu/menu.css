@@ -31,7 +31,20 @@
 
   --maxw: 720px;
   --pad: clamp(1.1rem, 5vw, 1.75rem);
+  /* the page is viewport-fit=cover, so a landscape iPhone puts its notch
+     over the first ~47px of the page — the side gutters grow to clear it */
+  --pad-l: max(var(--pad), env(safe-area-inset-left));
+  --pad-r: max(var(--pad), env(safe-area-inset-right));
   --headH: 58px;
+
+  /* one product tile size drives the card, its photo and the arrow that
+     centres on it. Fluid between a 280px Fold cover screen and a big phone:
+     always a full card plus a peek of the next, which is what says "swipe" */
+  --card-w: clamp(116px, 33vw, 150px);
+  --feat-w: calc(var(--card-w) + 12px);
+  /* .sec's side padding, which .cardrow bleeds back out through */
+  --sec-px: 1.3rem;
+  --track-px: clamp(1.6rem, 8vw, 2.2rem);
   /* sticky category bar height */
 
   /* the shop's marble — same crop and tone as the landing page */
@@ -87,10 +100,16 @@
   box-sizing: border-box;
 }
 
+/* clip, not hidden. overflow-x: hidden on both html and body turns body into
+   its own scroll container (its overflow-y computes to auto), and the sticky
+   category bar then sticks to a box that never scrolls — it rode off the top
+   of the screen with everything else. clip cuts the overflow without making
+   a scroll container; hidden stays as the fallback for pre-16 Safari. */
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
   overflow-x: hidden;
+  overflow-x: clip;
   width: 100%;
 }
 
@@ -104,6 +123,7 @@ body {
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  overflow-x: clip;
 }
 
 h1,
@@ -195,9 +215,9 @@ body::after {
      padding shorthand triggers a Chrome layout bug that overflows the page
      horizontally — see the width rules on html/body for the belt-and-braces */
   padding-top: calc(.6rem + env(safe-area-inset-top));
-  padding-right: var(--pad);
+  padding-right: var(--pad-r);
   padding-bottom: 1.9rem;
-  padding-left: var(--pad);
+  padding-left: var(--pad-l);
   border-radius: 0 0 34px 34px;
 }
 
@@ -353,6 +373,48 @@ body::after {
   white-space: nowrap;
 }
 
+/* under 360px (a Galaxy Fold's cover screen is 280) the bar's three parts
+   are wider than the screen and the hours pill ran off the right edge.
+   "Open ·" is the part a guest can lose, since they are sitting in the
+   café. The hours stay, and everything else tightens a notch. */
+@media (max-width:359px) {
+  .mhead__bar {
+    gap: .55rem;
+  }
+
+  .mhead__back {
+    width: 36px;
+    height: 36px;
+  }
+
+  .mhead__brand {
+    gap: .45rem;
+    min-width: 0;
+  }
+
+  .mhead__brand p {
+    letter-spacing: .16em;
+    white-space: nowrap;
+  }
+
+  .mhead__brand span {
+    letter-spacing: .2em;
+  }
+
+  .mhead__open {
+    padding: .4rem .6rem;
+    letter-spacing: .1em;
+  }
+
+  .mhead__open-lbl {
+    display: none;
+  }
+
+  .mhead__title {
+    max-width: 64%;
+  }
+}
+
 /* the photo mask fades in across 36%–74%, so the text column stops short of
    it — otherwise the subtitle's tail lands on the bright cup and the cream
    type loses all contrast against it */
@@ -448,6 +510,8 @@ body::after {
   font-size: 16px;
   /* 16px stops iOS zoom on focus */
   padding: .85rem .4rem;
+  /* a narrow phone cuts the placeholder mid-word — end it on an ellipsis */
+  text-overflow: ellipsis;
 }
 
 .search input::placeholder {
@@ -501,16 +565,16 @@ body::after {
   scrollbar-width: none;
   padding-top: .7rem;
   padding-bottom: .7rem;
-  padding-left: var(--pad);
-  padding-right: var(--pad);
+  padding-left: var(--pad-l);
+  padding-right: var(--pad-r);
   max-width: var(--maxw);
   margin: 0 auto;
   scroll-snap-type: x proximity;
   /* this row is now the only navigation on the page, so it has to *look*
      scrollable — the pills dissolve into the gutters instead of being
      guillotined at the viewport edge, which reads as "there is more here" */
-  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--pad), #000 calc(100% - var(--pad)), transparent 100%);
-  mask-image: linear-gradient(90deg, transparent 0, #000 var(--pad), #000 calc(100% - var(--pad)), transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 var(--pad-l), #000 calc(100% - var(--pad-r)), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 var(--pad-l), #000 calc(100% - var(--pad-r)), transparent 100%);
 }
 
 .cats__track::-webkit-scrollbar {
@@ -606,9 +670,9 @@ main {
   max-width: var(--maxw);
   margin: 0 auto;
   padding-top: 2.1rem;
-  padding-right: var(--pad);
+  padding-right: var(--pad-r);
   padding-bottom: 2rem;
-  padding-left: var(--pad);
+  padding-left: var(--pad-l);
 }
 
 .sec {
@@ -617,7 +681,7 @@ main {
   background: var(--card);
   border: 1px solid var(--line);
   border-radius: 22px;
-  padding: 1.5rem 1.3rem 1.2rem;
+  padding: 1.5rem var(--sec-px) 1.2rem;
   margin-bottom: 1rem;
   scroll-margin-top: calc(var(--headH) + 12px);
   box-shadow: 0 1px 0 rgba(38, 36, 31, .05);
@@ -726,7 +790,7 @@ main {
 .cardrow {
   position: relative;
   z-index: 1;
-  margin: 1rem -1.3rem 0;
+  margin: 1rem calc(-1 * var(--sec-px)) 0;
 }
 
 .cardrow__track {
@@ -740,7 +804,12 @@ main {
      against the section edge, under the floating arrow. Fluid, not a flat
      rem, so it doesn't eat a disproportionate slice of a small phone's
      already-scarce card width the way a fixed inset would. */
-  padding: .2rem clamp(1.6rem, 8vw, 2.2rem) .5rem;
+  padding: .2rem var(--track-px) .5rem;
+  /* without this, snap-align:start lines the first card up with the
+     scrollport edge rather than the padding edge: the row loaded already
+     scrolled ~30px, the first card flush against the section border, under
+     a "‹" arrow that should not even be showing yet */
+  scroll-padding-inline: var(--track-px);
 }
 
 .cardrow__track::-webkit-scrollbar {
@@ -757,8 +826,8 @@ main {
 .cardrow__arrow {
   display: flex;
   position: absolute;
-  /* centered on the 128px photo tile (track padding-top .2rem + half the tile) */
-  top: 67px;
+  /* centred on the photo tile (track padding-top .2rem + half the tile) */
+  top: calc(.2rem + var(--card-w) / 2);
   z-index: 3;
   width: 40px;
   height: 40px;
@@ -845,8 +914,8 @@ main {
 }
 
 .sec--feature .cardrow__arrow {
-  /* centered on the larger 140px feature tile */
-  top: 73px;
+  /* centred on the larger feature tile */
+  top: calc(.2rem + var(--feat-w) / 2);
   /* a soft cream halo so the beige button still pops against the
      feature panel's own green backdrop */
   box-shadow:
@@ -863,7 +932,7 @@ main {
 .pcard {
   position: relative;
   flex: 0 0 auto;
-  width: 128px;
+  width: var(--card-w);
   scroll-snap-align: start;
   display: flex;
   flex-direction: column;
@@ -896,8 +965,8 @@ main {
    panel in dark mode instead of blending into it */
 .pcard__photo {
   position: relative;
-  width: 128px;
-  height: 128px;
+  width: var(--card-w);
+  height: var(--card-w);
   background: #ffffff00;
   border-radius: 18px;
   box-shadow: none;
@@ -1041,12 +1110,12 @@ main {
 }
 
 .sec--feature .pcard {
-  width: 140px;
+  width: var(--feat-w);
 }
 
 .sec--feature .pcard__photo {
-  width: 140px;
-  height: 140px;
+  width: var(--feat-w);
+  height: var(--feat-w);
 }
 
 .list {
@@ -1287,9 +1356,15 @@ main {
   text-align: center;
   border-radius: 30px 30px 0 0;
   padding-top: 2.4rem;
-  padding-right: var(--pad);
+  padding-right: var(--pad-r);
   padding-bottom: calc(2.8rem + env(safe-area-inset-bottom));
-  padding-left: var(--pad);
+  padding-left: var(--pad-l);
+}
+
+/* the floating order button parks over the bottom of the page; give the
+   footer enough floor that the credit line is not hiding underneath it */
+body:not(.is-browsing) .mfoot {
+  padding-bottom: calc(6.2rem + env(safe-area-inset-bottom));
 }
 
 .mfoot__inner {
@@ -1504,7 +1579,7 @@ body.cart-open {
   all: unset;
   box-sizing: border-box;
   position: fixed;
-  right: 14px;
+  right: calc(14px + env(safe-area-inset-right));
   bottom: calc(14px + env(safe-area-inset-bottom));
   z-index: 30;
   display: flex;
@@ -1688,6 +1763,10 @@ body.cart-open {
   z-index: 50;
   width: min(92vw, 430px);
   max-height: min(85vh, 660px);
+  /* dvh: the height left over once the phone's own toolbars are drawn.
+     85vh is measured with them retracted, so the popup's foot could sit
+     under Safari's bottom bar */
+  max-height: min(85dvh, 660px);
   display: flex;
   flex-direction: column;
   border: 2.5px solid transparent;
@@ -2800,7 +2879,9 @@ body.cart-open {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--ui);
-  font-size: .86rem;
+  /* 16px, not .86rem: iOS zooms the whole page into any field under 16px
+     on focus, and leaves it zoomed after the popup closes */
+  font-size: 16px;
   padding: .6rem .75rem;
   transition: box-shadow .15s ease, border-color .15s ease;
 }
@@ -2873,6 +2954,42 @@ body.cart-open {
 @media (min-width:680px) {
   :root {
     --maxw: 960px;
+    /* tablets and an unfolded Fold held phone-sized tiles with a lot of
+       blank paper around them — the tile grows with the column instead */
+    --card-w: clamp(150px, 17vw, 172px);
+    --sec-px: 1.75rem;
+  }
+
+  .sec {
+    padding-top: 1.75rem;
+    padding-bottom: 1.5rem;
+    border-radius: 26px;
+  }
+
+  .sec__head h2 {
+    font-size: 1.3rem;
+  }
+
+  .pcard__name {
+    font-size: .92rem;
+  }
+
+  .pcard__price {
+    font-size: .88rem;
+  }
+
+  /* a one-column price list 900px wide strings its leader dots across the
+     whole tablet. Two columns keep each name within reach of its price.
+     Every row takes the rule above it, so the right column's first row is
+     ruled the same as the left's */
+  .list:not(.list--flavours) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 2.75rem;
+  }
+
+  .list:not(.list--flavours)>.item {
+    border-top: 1px solid var(--line);
   }
 
   /* header content lines up with the menu below it */
@@ -2904,6 +3021,81 @@ body.cart-open {
      doesn't reflow the way multi-column expects) mid-card and produces
      inconsistent gaps around spanning elements. A single centred column
      inside the wider --maxw stays simple and never mis-breaks a section. */
+}
+
+/* ==========================================================================
+   phone on its side — a ~375px-tall screen. Stacked, the header took 300px of
+   it and the menu started below the fold. Title and search share one row,
+   so the opening is about half that and the first section shows.
+   ========================================================================== */
+@media (orientation:landscape) and (max-height:520px) {
+  .mhead {
+    display: grid;
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+    align-items: end;
+    column-gap: 1.5rem;
+    padding-bottom: 1.1rem;
+    border-radius: 0 0 30px 30px;
+  }
+
+  .mhead__bar {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .mhead__title,
+  .search {
+    margin: .4rem 0 0;
+  }
+
+  .mhead__title {
+    max-width: none;
+  }
+
+  .mhead__kicker {
+    margin-bottom: .3rem;
+  }
+
+  .mhead__title h1 {
+    font-size: 2.4rem;
+  }
+
+  .mhead__title p {
+    font-size: .84rem;
+    margin-top: .2rem;
+  }
+
+  .search {
+    justify-self: end;
+    width: 100%;
+    max-width: 440px;
+    margin-bottom: .15rem;
+  }
+
+  /* the popups get nearly all of the little height there is */
+  .cart {
+    max-height: 94vh;
+    max-height: 94dvh;
+    padding-top: .8rem;
+    border-radius: 22px;
+  }
+
+  .cart__head {
+    padding-bottom: .55rem;
+  }
+
+  .addon-modal .addon-modal__title {
+    font-size: 1.35rem;
+    line-height: 1.25;
+  }
+}
+
+/* thumbs, not cursors: the category pills grow to a 40px target */
+@media (pointer:coarse) {
+  .cat {
+    padding-top: .56rem;
+    padding-bottom: .56rem;
+  }
 }
 
 /* ==========================================================================
