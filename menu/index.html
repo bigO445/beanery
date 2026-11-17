@@ -16,10 +16,21 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Oswald:wght@300;400;500;600&family=Playfair+Display:wght@600;700&family=Manrope:wght@400;500;600;700&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="menu.css?v=40">
+  <link rel="stylesheet" href="menu.css?v=41">
 </head>
 
 <body>
+  <!-- "Your order is ready": the POS called an order sent from this phone
+       (menu.js, the ready section). Fixed across the top, over the menu and
+       the cart alike. -->
+  <div class="ready-bar" id="readyBar" role="alert" hidden>
+    <div class="ready-bar__text">
+      <b class="ready-bar__title">Your order is ready</b>
+      <span class="ready-bar__sub" id="readyBarSub"></span>
+    </div>
+    <button class="ready-bar__ok" id="readyBarOk" type="button">OK</button>
+  </div>
+
 
   <svg class="sprite" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg">
     <!-- the Beanery monogram: the owner's own vector (beanery-logo-assets,
@@ -903,6 +914,8 @@
         <span>This order</span>
         <b id="cartDoneTotal">0 <small>IQD</small></b>
       </div>
+      <button class="cart__tell" id="cartDoneTell" type="button" hidden>Tell me when it's ready</button>
+      <p class="cart__tell__note" id="cartDoneNote" aria-live="polite"></p>
       <button class="cart__more" id="cartDoneMore" type="button">Add more items</button>
     </div>
 
@@ -1013,7 +1026,7 @@
     </footer>
   </aside>
 
-  <script src="menu.js?v=33"></script>
+  <script src="menu.js?v=34"></script>
 </body>
 
 </html>

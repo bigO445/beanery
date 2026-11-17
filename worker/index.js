@@ -47,6 +47,10 @@ const MAX_ORDER_BYTES = 64 * 1024;
 // A publicId is 16 random bytes hex-encoded (newPublicId).
 const PUBLIC_ID = /^[a-f0-9]{32}$/;
 
+// A push subscription is an address and two keys: well under 4kb, the POS's
+// own cap for this body.
+const MAX_PUSH_BYTES = 4 * 1024;
+
 // The per-order token that ties an add-on line to its drink. The menu emits
 // "g1", "g2", ...; the bound is generous enough that a different scheme would
 // still pass, and tight enough that this can never carry a payload.
@@ -387,6 +391,52 @@ export default {
       const t = url.searchParams.get('t') || '';
       if (!PUBLIC_ID.test(publicId) || !QR_TOKEN.test(t)) return json({ error: 'not found' }, 404);
       return relay(upstream(env, '/api/public/orders/' + publicId, { clientIp }));
+    }
+
+    // ── GET /api/push-key ─────────────────────────────────────────────────
+    // The POS's push key, so the menu can offer "Tell me when it's ready".
+    // A 404 means the POS has push off, and the menu shows no button.
+    if (pathname === '/api/push-key' && request.method === 'GET') {
+      return relay(upstream(env, '/api/public/push-key', { clientIp }));
+    }
+
+    // ── POST /api/order/<publicId>/push ───────────────────────────────────
+    // Body: { subscription: { endpoint, keys: { p256dh, auth } }, lang }
+    // The guest's phone asks to be told when this order is ready. Rebuilt
+    // field by field, like the order: only an https address and the two keys
+    // travel on. The POS checks the address is a real push service and keeps
+    // at most three phones per order.
+    const pushMatch = pathname.match(/^\/api\/order\/([a-f0-9]{32})\/push$/);
+    if (pushMatch && request.method === 'POST') {
+      const raw = await request.text();
+      if (raw.length > MAX_PUSH_BYTES) return json({ error: 'Too large.' }, 413);
+
+      let body;
+      try {
+        body = JSON.parse(raw);
+      } catch {
+        return json({ error: 'Bad request.' }, 400);
+      }
+
+      const text = (v, max) => (typeof v === 'string' && v.length > 0 && v.length <= max ? v : null);
+      const sub = body && body.subscription;
+      const endpoint = text(sub && sub.endpoint, 1000);
+      const p256dh = text(sub && sub.keys && sub.keys.p256dh, 200);
+      const auth = text(sub && sub.keys && sub.keys.auth, 100);
+      if (!endpoint || !endpoint.startsWith('https://') || !p256dh || !auth) {
+        return json({ error: 'invalid subscription' }, 400);
+      }
+
+      return relay(
+        upstream(env, '/api/public/orders/' + pushMatch[1] + '/push', {
+          method: 'POST',
+          body: JSON.stringify({
+            subscription: { endpoint, keys: { p256dh, auth } },
+            lang: body.lang === 'ar' ? 'ar' : 'en',
+          }),
+          clientIp,
+        })
+      );
     }
 
     // An unmatched /api/ path is not a route this site has. 404 rather than

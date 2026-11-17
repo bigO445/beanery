@@ -1007,18 +1007,25 @@
 
     const order = { t: QR_TOKEN, items: lines };
 
+    // This tap is what lets the page chime later, when the order is ready.
+    unlockSound();
+
     cartSend.disabled = true;
     cartSendLabel.textContent = 'Placing your order…';
     cartStatus.textContent = '';
     cartStatus.className = 'cart__status';
 
     try {
-      await sendOrderToPOS(order);
+      const sent = await sendOrderToPOS(order);
 
       // the cart empties into the record rather than just emptying: a guest
       // who taps "place order" and watches the list vanish has no way to
       // check what they actually asked for
       const record = { at: Date.now(), lines: cart.map(snapshotLine) };
+      // The POS's id for this order: how the page asks whether it is ready.
+      if (sent && typeof sent.publicId === 'string' && /^[a-f0-9]{32}$/.test(sent.publicId)) {
+        record.publicId = sent.publicId;
+      }
       placed.push(record);
       savePlaced();
       cart = [];
@@ -1029,6 +1036,8 @@
       renderDone(record);
       setCartView('done');
       cartDone.focus();
+      offerTell(record);
+      watchReady();
     } catch (err) {
       cartStatus.textContent = err && err.posMessage
         ? err.posMessage
@@ -1057,6 +1066,238 @@
   cartBrowse.addEventListener('click', closeCart);
 
   renderCart();
+
+  /* ---------- "your order is ready" ----------
+   *
+   * The POS marks an order ready when the kitchen screen finishes it or the
+   * cashier taps Call guest. While this page is open it asks every 15 s about
+   * each order sent in the last three hours that is not ready yet; when one
+   * is, a bar goes across the top of the page, it chimes and the phone
+   * vibrates. The sound is unlocked by the Place order tap, since a browser
+   * plays nothing a tap did not start.
+   *
+   * With the page closed only a push reaches the guest. The receipt offers
+   * "Tell me when it's ready" when this phone can take a push and the POS
+   * has push on (/api/push-key answers; a 404 means no button). An iPhone
+   * takes a push only from a menu added to the Home Screen, so in Safari
+   * there is no button and the open page is the way.
+   */
+  const READY_POLL_MS = 15000;
+  const READY_WATCH_MS = 3 * 60 * 60 * 1000;
+  const PUSH_KEY_ENDPOINT = '/api/push-key';
+  // A push service that never answers must not leave a dead button: after
+  // this long the page says to keep it open instead.
+  const TELL_WAIT_MS = 10000;
+
+  const readyBar      = $('#readyBar');
+  const readyBarSub   = $('#readyBarSub');
+  const readyBarOk    = $('#readyBarOk');
+  const cartDoneTell  = $('#cartDoneTell');
+  const cartDoneNote  = $('#cartDoneNote');
+
+  let readyTimer = null;
+  let readyAudio = null;
+  let pushKeyAsk = null;
+  let tellFor = null;
+
+  function unlockSound() {
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (AC && !readyAudio) readyAudio = new AC();
+      if (readyAudio && readyAudio.resume) readyAudio.resume();
+    } catch {
+      readyAudio = null;
+    }
+  }
+
+  function chime() {
+    try {
+      if (!readyAudio) return;
+      [0, 0.35].forEach((at) => {
+        const o = readyAudio.createOscillator();
+        const g = readyAudio.createGain();
+        const t = readyAudio.currentTime + at;
+        o.frequency.value = 880;
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(0.4, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+        o.connect(g);
+        g.connect(readyAudio.destination);
+        o.start(t);
+        o.stop(t + 0.32);
+      });
+    } catch {
+      /* no sound; the bar still shows */
+    }
+  }
+
+  // Orders still worth asking about: sent from this phone with an id the POS
+  // gave back, not called yet, not refused, and from this sitting.
+  const stillWaiting = () => placed.filter((o) =>
+    o.publicId && !o.ready && !o.over && o.at > Date.now() - READY_WATCH_MS);
+
+  function showReady(o) {
+    if (!readyBar) return;
+    const n = placed.indexOf(o) + 1;
+    readyBarSub.textContent = placed.length > 1
+      ? `Order ${n}, sent at ${timeOf(o.at)}`
+      : `Sent at ${timeOf(o.at)}`;
+    readyBar.hidden = false;
+    chime();
+    if (navigator.vibrate) {
+      try { navigator.vibrate([300, 120, 300]); } catch { /* none */ }
+    }
+  }
+
+  function watchReady() {
+    clearTimeout(readyTimer);
+    readyTimer = stillWaiting().length ? setTimeout(askReady, READY_POLL_MS) : null;
+  }
+
+  async function askReady() {
+    readyTimer = null;
+    if (document.visibilityState === 'hidden') return; // asked again on return
+    let changed = false;
+    for (const o of stillWaiting()) {
+      try {
+        const res = await fetch(`${ORDER_ENDPOINT}/${o.publicId}?t=${encodeURIComponent(QR_TOKEN)}`, {
+          headers: { accept: 'application/json' },
+          cache: 'no-store',
+        });
+        if (res.status === 404) { o.over = true; changed = true; continue; }
+        if (!res.ok) continue;
+        const data = await res.json();
+        if (data && data.ready === true) {
+          o.ready = true;
+          changed = true;
+          showReady(o);
+        } else if (data && (data.status === 'voided' || data.status === 'cancelled')) {
+          // Turned down at the counter: nothing will ever be ready.
+          o.over = true;
+          changed = true;
+        }
+        // A paid bill is still watched: a cafe that takes payment first
+        // calls the order after.
+      } catch {
+        /* offline for a moment: ask again next time */
+      }
+    }
+    if (changed) savePlaced();
+    watchReady();
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && stillWaiting().length) {
+      clearTimeout(readyTimer);
+      askReady();
+    }
+  });
+
+  if (readyBarOk) readyBarOk.addEventListener('click', () => { readyBar.hidden = true; });
+
+  const canPush = () => 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+
+  // The POS's push key, asked once. null: no push on this phone or this POS.
+  function pushKey() {
+    if (!pushKeyAsk) {
+      pushKeyAsk = (async () => {
+        if (!canPush() || Notification.permission === 'denied') return null;
+        try {
+          const res = await fetch(PUSH_KEY_ENDPOINT, { headers: { accept: 'application/json' } });
+          if (!res.ok) return null;
+          const data = await res.json();
+          return data && typeof data.key === 'string' && data.key ? data.key : null;
+        } catch {
+          return null;
+        }
+      })();
+    }
+    return pushKeyAsk;
+  }
+
+  function keyBytes(key) {
+    let s = String(key).replace(/-/g, '+').replace(/_/g, '/');
+    while (s.length % 4) s += '=';
+    const raw = atob(s);
+    const out = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i += 1) out[i] = raw.charCodeAt(i);
+    return out;
+  }
+
+  // Ask the POS to push to this phone when this order is ready. True when
+  // the POS kept the phone.
+  async function tellMe(record, key) {
+    const reg = await navigator.serviceWorker.register('sw.js', { scope: './' });
+    await navigator.serviceWorker.ready;
+    const sub = (await reg.pushManager.getSubscription())
+      || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(key) }));
+    const res = await fetch(`${ORDER_ENDPOINT}/${record.publicId}/push`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ subscription: sub.toJSON(), lang: 'en' }),
+    });
+    if (!res.ok) return false;
+    let data = null;
+    try { data = await res.json(); } catch { data = null; }
+    // Called while we were asking: say so now.
+    if (data && data.ready && !record.ready) {
+      record.ready = true;
+      savePlaced();
+      showReady(record);
+    }
+    return true;
+  }
+
+  const inTime = (promise) => Promise.race([
+    promise,
+    new Promise((resolve, reject) => setTimeout(() => reject(new Error('timeout')), TELL_WAIT_MS)),
+  ]);
+
+  function noteTold(ok) {
+    cartDoneTell.hidden = true;
+    cartDoneNote.textContent = ok
+      ? "We'll tell you when it's ready."
+      : "Keep this page open and we'll tell you when it's ready.";
+  }
+
+  // The receipt's offer, for the order just sent. A phone that already said
+  // yes once is signed up again without asking.
+  async function offerTell(record) {
+    tellFor = record;
+    if (!cartDoneTell) return;
+    cartDoneTell.hidden = true;
+    cartDoneTell.disabled = false;
+    cartDoneNote.textContent = '';
+    if (!record.publicId) return;
+    const key = await pushKey();
+    if (!key || tellFor !== record) return;
+    if (Notification.permission === 'granted') {
+      let ok = false;
+      try { ok = await inTime(tellMe(record, key)); } catch { ok = false; }
+      if (tellFor === record) noteTold(ok);
+      return;
+    }
+    cartDoneTell.hidden = false;
+  }
+
+  if (cartDoneTell) {
+    cartDoneTell.addEventListener('click', async () => {
+      const record = tellFor;
+      if (!record) return;
+      unlockSound();
+      cartDoneTell.disabled = true;
+      let ok = false;
+      try {
+        const key = await pushKey();
+        if (key && (await Notification.requestPermission()) === 'granted') ok = await inTime(tellMe(record, key));
+      } catch {
+        ok = false;
+      }
+      if (tellFor === record) noteTold(ok);
+    });
+  }
+
+  watchReady();
 
   /* ---------- header photo: double-tap to swap the shot ----------
      Not persisted on purpose: header-cup.jpg is the default, so every

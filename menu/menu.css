@@ -3338,3 +3338,107 @@ body.is-browsing .item__add {
 .cart__qty button::after {
   width: 40px;
 }
+
+/* ---------- "your order is ready" (menu.js, the ready section) ---------- */
+
+.cart__tell {
+  all: unset;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 48px;
+  cursor: pointer;
+  margin-top: 1rem;
+  padding: .9rem;
+  border-radius: 16px;
+  border: 2.5px solid var(--green-deep);
+  background: var(--green-deep);
+  color: #fff;
+  font-family: var(--ui);
+  font-weight: 700;
+  font-size: .92rem;
+  transition: transform .15s ease;
+}
+
+.cart__tell[hidden] {
+  display: none;
+}
+
+.cart__tell:active {
+  transform: scale(.98);
+}
+
+.cart__tell:disabled {
+  opacity: .6;
+  cursor: default;
+}
+
+.cart__tell:focus-visible,
+.ready-bar__ok:focus-visible {
+  outline: 2.5px solid var(--gold);
+  outline-offset: 3px;
+}
+
+.cart__tell__note {
+  margin: .8rem 0 0;
+  text-align: center;
+  font-family: var(--ui);
+  font-size: .84rem;
+  color: var(--ink-soft);
+}
+
+.cart__tell__note:empty {
+  display: none;
+}
+
+.ready-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: calc(.9rem + env(safe-area-inset-top)) 1.1rem .9rem;
+  background: var(--green-deep);
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .25);
+  font-family: var(--ui);
+}
+
+.ready-bar[hidden] {
+  display: none;
+}
+
+.ready-bar__text {
+  flex: 1 1 auto;
+  display: grid;
+  gap: .15rem;
+  min-width: 0;
+}
+
+.ready-bar__title {
+  font-size: 1.15rem;
+}
+
+.ready-bar__sub {
+  font-size: .85rem;
+  opacity: .85;
+}
+
+.ready-bar__ok {
+  all: unset;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  min-width: 64px;
+  min-height: 44px;
+  padding: 0 1.1rem;
+  border-radius: 12px;
+  cursor: pointer;
+  background: var(--gold-soft);
+  color: #283618;
+  font-weight: 700;
+}
