@@ -46,7 +46,7 @@
         },
         {
           "name": "Turkish Coffee",
-          "price": 1500,
+          "price": 2500,
           "image": "turkish-coffee.webp",
           "posId": "prod_1787863617451_qx5pcp_espresso-turkish-coffee"
         }
@@ -62,43 +62,43 @@
       "items": [
         {
           "name": "Cappuccino",
-          "price": 4500,
+          "price": 4000,
           "image": "cappuccino.webp",
           "posId": "prod_1787863617451_qx5pcp_classic-coffee-cappuccino"
         },
         {
           "name": "Latte",
-          "price": 4500,
+          "price": 4000,
           "image": "latte.webp",
           "posId": "prod_1787863617451_qx5pcp_classic-coffee-latte"
         },
         {
           "name": "Spanish Latte",
-          "price": 4000,
+          "price": 5000,
           "image": "spanish-latte.webp",
           "posId": "prod_1787863617451_qx5pcp_classic-coffee-spanish-latte"
         },
         {
           "name": "Vanilla Latte",
-          "price": 4000,
+          "price": 5000,
           "image": "vanilla-latte.webp",
           "posId": "prod_1787863617451_qx5pcp_classic-coffee-vanilla-latte"
         },
         {
           "name": "Caramel Latte",
-          "price": 4000,
+          "price": 5000,
           "image": "caramel-latte.webp",
           "posId": "prod_1787863617451_qx5pcp_classic-coffee-caramel-latte"
         },
         {
           "name": "Mocha",
-          "price": 4000,
+          "price": 5000,
           "image": "mocha.webp",
           "posId": "prod_1787863617451_qx5pcp_classic-coffee-mocha"
         },
         {
           "name": "White Mocha",
-          "price": 4000,
+          "price": 5000,
           "image": "white-mocha.webp",
           "posId": "prod_1787863617451_qx5pcp_classic-coffee-white-mocha"
         }
@@ -128,7 +128,7 @@
         },
         {
           "name": "Cold Brew",
-          "price": 4000,
+          "price": 4500,
           "image": "amricano.webp",
           "placeholder": true,
           "needsPhoto": "Borrowing the iced americano. Cold brew should read darker and served without crema.",
@@ -403,28 +403,28 @@
           "price": 5000,
           "image": "carrot-juice.webp",
           "badge": "New",
-          "posId": "prod_1787863617451_qx5pcp_fresh-refreshing-carrot-juice"
+          "posId": "id_1788801502898_wjqw2qwa0"
         },
         {
           "name": "Fresh Pomegranate Juice",
           "price": 5000,
           "image": "pomegranate-juice.webp",
           "badge": "New",
-          "posId": "prod_1787863617451_qx5pcp_fresh-refreshing-pomegranate-juice"
+          "posId": "id_1788801599840_pcplyno3g"
         },
         {
           "name": "Tea",
-          "price": 500,
+          "price": 1000,
           "image": "tea.webp",
           "badge": "New",
-          "posId": "prod_1787863617451_qx5pcp_fresh-refreshing-tea"
+          "posId": "id_1789210653782_bfxmuvzm7"
         },
         {
           "name": "Mate",
-          "price": 500,
+          "price": 2500,
           "image": "mate-tea.webp",
           "badge": "New",
-          "posId": "prod_1787863617451_qx5pcp_fresh-refreshing-mate-tea"
+          "posId": "id_1788801805615_79raks0qe"
         }
       ]
     },
@@ -496,7 +496,7 @@
       "items": [
         {
           "name": "Water",
-          "price": 500,
+          "price": 1000,
           "posId": "id_1787918781516_fgmi7awpt"
         },
         {
@@ -512,7 +512,7 @@
         },
         {
           "name": "Redbull",
-          "price": 2000,
+          "price": 4000,
           "posId": "id_1788275436604_5g981oion"
         }
       ]
