@@ -1475,30 +1475,6 @@ body:not(.is-browsing) .mfoot {
   opacity: .75;
 }
 
-@media (min-width:680px) {
-  .mfoot__inner {
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: space-between;
-    max-width: var(--maxw);
-    margin: 0 auto;
-    text-align: left;
-  }
-
-  .mfoot__brand .mfoot__sub {
-    justify-content: flex-start;
-  }
-
-  .mfoot__aside {
-    text-align: right;
-    max-width: 34ch;
-  }
-
-  .mfoot__bean {
-    margin: 0 0 .9rem auto;
-  }
-}
-
 /* ==========================================================================
    cart: per-item add buttons + order-summary bar + order panel
    ========================================================================== */
@@ -2745,7 +2721,7 @@ body.cart-open {
    generous size, loose line-height, full ink contrast, no letter-spacing
    fighting the letterforms' own connections. */
 .addon-modal .addon-modal__title {
-  font-family: var(--script);
+  font-family: var(--display);
   font-weight: 700;
   font-size: clamp(1.4rem, 5.5vw, 1.75rem);
   line-height: 1.35;
